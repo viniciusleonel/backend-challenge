@@ -4,6 +4,24 @@
 
 Este é um projeto Spring Boot que implementa um sistema de validação de JWT (JSON Web Tokens) com validações específicas para claims personalizados. O projeto demonstra a aplicação de princípios SOLID, através de uma arquitetura extensível de validadores e tratamento robusto de exceções.
 
+### Premissas Assumidas
+
+**Importante**: Conforme especificado no desafio, o JWT é recebido "por parâmetros" e retorna um boolean. Considerando que:
+
+1. **Input**: JWT como string via parâmetros
+2. **Output**: Boolean indicando validade (true/false)
+3. **Simplicidade**: Resposta direta sem complexidade adicional
+
+**Decisão tomada**: O JWT é recebido via **query parameter** na URL (`/api/validate?token={{jwt}}`).
+
+**Motivação para esta decisão**:
+- **Conformidade com o Enunciado**: O desafio especifica "por parâmetros" sem mencionar body, bearer ou headers
+- **Clareza da Especificação**: Não há ambiguidade sobre usar body (POST) ou bearer authorization
+- **Simplicidade**: Adequado para o output booleano simples
+- **Testabilidade**: Facilita testes diretos via navegador ou ferramentas simples
+- **Flexibilidade**: Não requer configuração de headers de autorização
+- **Validação Rápida**: Permite verificação direta de tokens sem setup adicional
+
 ## Tecnologias Utilizadas
 
 - **Java 21**
@@ -45,7 +63,7 @@ O sistema valida JWT tokens através de um endpoint REST que verifica:
 
 ### GET /api/validate
 
-Valida um JWT token.
+Valida um JWT token recebido via query parameter.
 
 **Parâmetros:**
 - `token` (query parameter): O JWT token a ser validado
@@ -68,6 +86,8 @@ true
 // Token inválido
 false
 ```
+
+**Nota**: O JWT é recebido via query parameter conforme especificado no desafio, facilitando testes diretos e validação rápida de tokens.
 
 ## Arquitetura
 
@@ -334,6 +354,36 @@ Utilitário para validação de números primos:
 ```java
 boolean isPrime = NumberUtils.isPrime(7841); // true
 ```
+
+## Decisões de Implementação
+
+### JWT via Query Parameter
+
+**Decisão**: O JWT é recebido via query parameter (`?token={{jwt}}`) em vez de header de autorização, body ou path parameter.
+
+**Justificativa**:
+- **Conformidade com o Enunciado**: O desafio especifica "por parâmetros" sem mencionar body, bearer authorization ou headers
+- **Clareza da Especificação**: Não há ambiguidade sobre usar body (POST) ou bearer authorization
+- **Simplicidade**: Adequado para o output booleano simples
+- **Testabilidade**: Facilita testes diretos via navegador ou ferramentas simples
+- **Flexibilidade**: Não requer configuração de headers de autorização
+- **Validação Rápida**: Permite verificação direta de tokens sem setup adicional
+
+**Alternativas Consideradas e Rejeitadas**:
+- **Header Authorization (Bearer)**: Mais padrão para JWT, mas **não foi especificado no desafio**
+- **Body POST**: Adequado para dados complexos, mas **não foi mencionado no enunciado**
+- **Path Parameter**: Menos flexível e mais restritivo
+- **Query Parameter**: **Única opção mencionada no desafio** ("por parâmetros")
+
+### Output Boolean
+
+**Decisão**: Retorno direto como boolean (true/false) em vez de objeto JSON estruturado.
+
+**Justificativa**:
+- **Simplicidade**: Resposta direta e clara
+- **Conformidade**: O desafio especifica "boolean indicando se é válido"
+- **Eficiência**: Menos overhead de serialização/deserialização
+- **Clareza**: Resposta imediata sem necessidade de parsing
 
 ## Contribuição
 
