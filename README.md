@@ -114,8 +114,12 @@ O projeto implementa os princípios SOLID através de:
 src/main/java/br/dev/viniciusleonel/backend_challenge/
 ├── controller/          # Controladores REST
 ├── infra/               # Infraestrutura da aplicação
-│   └── exception/       # Tratamento de exceções
-│       └── handler/     # Handlers globais de exceção
+│   ├── config/          # Configurações da aplicação
+│   │   └── WebConfig.java
+│   ├── exception/       # Tratamento de exceções
+│   │   └── handler/     # Handlers globais de exceção
+│   └── interceptor/     # Interceptadores de requisição
+│       └── LoggingInterceptor.java
 ├── utils/               # Utilitários (geração de JWT, validação de números)
 ├── validators/          # Validadores de claims
 └── BackendChallengeApplication.java
@@ -246,9 +250,18 @@ logging.level.root=INFO
 # Nível de log específico para o pacote da aplicação
 logging.level.br.dev.viniciusleonel.backend_challenge=DEBUG
 
-# Formato de saída dos logs
-logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+# Formato de saída dos logs com MDC para observabilidade
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{requestId}] [%X{endpoint}] - %msg%n
 ```
+
+### Configurações de Observabilidade
+
+O sistema de observabilidade é configurado através de:
+
+1. **LoggingInterceptor**: Aplicado automaticamente a todas as rotas `/api/**`
+2. **MDC**: Contexto injetado automaticamente em cada requisição
+3. **GlobalExceptionHandler**: Logging automático de todas as exceções
+4. **WebConfig**: Registro automático do interceptor
 
 ## Sistema de Logging
 
@@ -258,7 +271,30 @@ A aplicação implementa um sistema robusto de logging utilizando SLF4J com Logb
 
 - **Nível Global**: INFO (configurado em `logging.level.root`)
 - **Nível da Aplicação**: DEBUG (configurado para o pacote principal)
-- **Formato**: Timestamp, Thread, Nível, Logger e Mensagem
+- **Formato**: Timestamp, Thread, Nível, Logger, RequestID, Endpoint e Mensagem
+
+### Padrão de Logging com MDC
+
+```properties
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{requestId}] [%X{endpoint}] - %msg%n
+```
+
+### Sistema de Correlação de Requisições
+
+A aplicação implementa **MDC (Mapped Diagnostic Context)** para correlacionar automaticamente todos os logs de uma mesma requisição:
+
+- **RequestID**: UUID único gerado automaticamente para cada requisição
+- **Endpoint**: URI da requisição sendo processada
+- **Correlação**: Todos os logs de uma requisição compartilham o mesmo contexto
+
+### LoggingInterceptor
+
+O `LoggingInterceptor` é responsável por:
+
+1. **Geração automática de RequestID** para cada requisição
+2. **Captura do endpoint** sendo acessado
+3. **Injeção do contexto MDC** em todas as requisições
+4. **Limpeza automática** do contexto ao final da requisição
 
 ### Logs Implementados
 
@@ -293,33 +329,112 @@ A aplicação implementa um sistema robusto de logging utilizando SLF4J com Logb
 - **DEBUG**: Seed válido
 - **ERROR**: Seed nulo/vazio, seed inválido, seed não é primo
 
-### Exemplo de Saída de Logs
+#### GlobalExceptionHandler
+- **ERROR**: Claims inválidas detectadas com detalhes da exceção
+- **ERROR**: Tokens inválidos detectados com detalhes da exceção
+
+### Exemplo de Saída de Logs com MDC
 
 ```
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.c.ApiController - Endpoint /api/validate chamado
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator - Iniciando validacao do JWT
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.u.JwtDecoder - Iniciando decodificacao do JWT
-2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.u.JwtDecoder - JWT decodificado com sucesso
-2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.JwtValidator - Verificando total de claims
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator - Total de claims valido: 3
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator - Chamando validadores de claims
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.NameValidator - Iniciando validacao da claim Name
-2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.NameValidator - Nome valido: Toninho Araujo
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.RoleValidator - Iniciando validacao da claim Role
-2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.RoleValidator - Role valido: Admin
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.SeedValidator - Iniciando validacao da claim Seed
-2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.SeedValidator - Seed valido: 7841
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator - JWT passou nas validacoes
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.c.ApiController - JWT valido
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.c.ApiController [abc123-def456] [/api/validate] - Endpoint /api/validate chamado
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] - Iniciando validacao do JWT
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.u.JwtDecoder [abc123-def456] [/api/validate] - Iniciando decodificacao do JWT
+2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.u.JwtDecoder [abc123-def456] [/api/validate] - JWT decodificado com sucesso
+2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] - Verificando total de claims
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] - Total de claims valido: 3
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] - Chamando validadores de claims
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.NameValidator [abc123-def456] [/api/validate] - Iniciando validacao da claim Name
+2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.NameValidator [abc123-def456] [/api/validate] - Nome valido: Toninho Araujo
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.RoleValidator [abc123-def456] [/api/validate] - Iniciando validacao da claim Role
+2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.RoleValidator [abc123-def456] [/api/validate] - Role valido: Admin
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.SeedValidator [abc123-def456] [/api/validate] - Iniciando validacao da claim Seed
+2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.SeedValidator [abc123-def456] [/api/validate] - Seed valido: 7841
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] - JWT passou nas validacoes
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.c.ApiController [abc123-def456] [/api/validate] - JWT valido
 ```
 
-### Benefícios do Sistema de Logging
+### Benefícios do Sistema de Logging e Observabilidade
 
-1. **Rastreabilidade**: Logs detalhados de todas as operações de validação
-2. **Debugging**: Nível DEBUG para desenvolvimento e troubleshooting
-3. **Monitoramento**: Logs estruturados para análise de performance e erros
-4. **Auditoria**: Histórico completo de validações de JWT
-5. **Manutenção**: Facilita a identificação e correção de problemas
+1. **Rastreabilidade Automática**: Cada requisição recebe um ID único automaticamente
+2. **Correlação de Logs**: Todos os logs de uma requisição podem ser agrupados pelo RequestID
+3. **Debugging Aprimorado**: Facilita a identificação de problemas específicos por requisição
+4. **Monitoramento Estruturado**: Logs organizados para análise de performance e erros
+5. **Auditoria Completa**: Histórico detalhado de todas as validações de JWT
+6. **Manutenção Simplificada**: Facilita a identificação e correção de problemas
+7. **Observabilidade em Produção**: Sistema preparado para ambientes de produção com ferramentas de monitoramento
+
+## Observabilidade
+
+A aplicação implementa um sistema completo de observabilidade que vai além do logging básico, fornecendo insights profundos sobre o comportamento e performance do sistema.
+
+### Componentes de Observabilidade
+
+#### 1. Logging Estruturado
+- **Formato consistente** com timestamp, thread, nível e contexto
+- **Níveis apropriados** (INFO, DEBUG, ERROR) para diferentes cenários
+- **Contexto rico** com informações de requisição e endpoint
+
+#### 2. Correlação de Requisições
+- **RequestID único** para cada requisição HTTP
+- **Contexto compartilhado** entre todos os componentes da aplicação
+- **Rastreabilidade completa** do fluxo de validação
+
+#### 3. Tratamento de Exceções
+- **Logging detalhado** de todas as exceções
+- **Contexto preservado** mesmo em situações de erro
+- **Stack traces** para debugging eficiente
+
+### Casos de Uso da Observabilidade
+
+1. **Debugging de Requisições**: Identificar problemas específicos por RequestID
+2. **Análise de Performance**: Correlacionar logs para medir tempo de resposta
+3. **Monitoramento de Erros**: Rastrear falhas específicas por requisição
+4. **Auditoria de Segurança**: Histórico completo de validações de JWT
+5. **Troubleshooting**: Correlacionar logs de diferentes componentes da aplicação
+6. **Análise de Padrões**: Identificar padrões de uso e comportamento
+
+### Estrutura de Arquivos de Observabilidade
+
+```
+src/main/java/br/dev/viniciusleonel/backend_challenge/
+├── infra/
+│   ├── config/              # Configurações da aplicação
+│   │   └── WebConfig.java   # Configuração do interceptor
+│   ├── exception/            # Tratamento de exceções
+│   │   └── handler/         # Handlers globais de exceção
+│   │       └── GlobalExceptionHandler.java
+│   └── interceptor/         # Interceptadores de requisição
+│       └── LoggingInterceptor.java
+```
+
+### Configuração Automática
+
+O sistema de observabilidade é configurado automaticamente através de:
+
+- **LoggingInterceptor**: Aplicado automaticamente a todas as rotas `/api/**`
+- **MDC**: Contexto injetado automaticamente em cada requisição
+- **Logging**: Formato configurado para exibir RequestID e Endpoint
+- **Exception Handling**: Logging automático de todas as exceções
+
+### Integração com Ferramentas de Monitoramento
+
+O sistema está preparado para integração com:
+
+- **ELK Stack** (Elasticsearch, Logstash, Kibana)
+- **Prometheus + Grafana**
+- **Splunk**
+- **Datadog**
+- **New Relic**
+
+### Métricas Disponíveis
+
+Através dos logs estruturados, é possível extrair:
+
+- **Volume de requisições** por endpoint
+- **Taxa de sucesso/erro** por tipo de validação
+- **Tempo de resposta** por operação
+- **Padrões de uso** dos diferentes tipos de JWT
+- **Distribuição de erros** por tipo de claim inválida
 
 ## Exemplo de JWT Válido
 
