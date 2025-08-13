@@ -11,6 +11,7 @@ Este é um projeto Spring Boot que implementa um sistema de validação de JWT (
 - **Maven 3.9.8+**
 - **Auth0 JWT Library 4.4.0**
 - **JUnit 4.13.2** (para testes)
+- **SLF4J + Logback** (para logging)
 - **Docker**
 
 ## Funcionalidades
@@ -218,7 +219,87 @@ As configurações da aplicação estão em `src/main/resources/application.prop
 
 ```properties
 spring.application.name=backend-challenge
+
+# Nível de log global
+logging.level.root=INFO
+
+# Nível de log específico para o pacote da aplicação
+logging.level.br.dev.viniciusleonel.backend_challenge=DEBUG
+
+# Formato de saída dos logs
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
 ```
+
+## Sistema de Logging
+
+A aplicação implementa um sistema robusto de logging utilizando SLF4J com Logback, fornecendo rastreabilidade completa das operações de validação de JWT.
+
+### Configuração de Logs
+
+- **Nível Global**: INFO (configurado em `logging.level.root`)
+- **Nível da Aplicação**: DEBUG (configurado para o pacote principal)
+- **Formato**: Timestamp, Thread, Nível, Logger e Mensagem
+
+### Logs Implementados
+
+#### Controller (ApiController)
+- **INFO**: Endpoint chamado, JWT válido/inválido
+- **ERROR**: JWT inválido
+
+#### JWT Validator
+- **INFO**: Início da validação, total de claims válido, chamada de validadores, validação bem-sucedida
+- **DEBUG**: Verificação de total de claims
+- **ERROR**: Total de claims inválido
+
+#### JWT Decoder
+- **INFO**: Início da decodificação
+- **DEBUG**: JWT decodificado com sucesso
+- **ERROR**: Falha na decodificação
+
+#### Validadores de Claims
+
+##### NameValidator
+- **INFO**: Início da validação da claim Name
+- **DEBUG**: Nome válido
+- **ERROR**: Nome nulo/vazio, tamanho excedido, contém números
+
+##### RoleValidator
+- **INFO**: Início da validação da claim Role
+- **DEBUG**: Role válido
+- **ERROR**: Role nulo/vazio, role inválido
+
+##### SeedValidator
+- **INFO**: Início da validação da claim Seed
+- **DEBUG**: Seed válido
+- **ERROR**: Seed nulo/vazio, seed inválido, seed não é primo
+
+### Exemplo de Saída de Logs
+
+```
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.c.ApiController - Endpoint /api/validate chamado
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator - Iniciando validacao do JWT
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.u.JwtDecoder - Iniciando decodificacao do JWT
+2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.u.JwtDecoder - JWT decodificado com sucesso
+2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.JwtValidator - Verificando total de claims
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator - Total de claims valido: 3
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator - Chamando validadores de claims
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.NameValidator - Iniciando validacao da claim Name
+2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.NameValidator - Nome valido: Toninho Araujo
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.RoleValidator - Iniciando validacao da claim Role
+2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.RoleValidator - Role valido: Admin
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.SeedValidator - Iniciando validacao da claim Seed
+2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.SeedValidator - Seed valido: 7841
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator - JWT passou nas validacoes
+2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.c.ApiController - JWT valido
+```
+
+### Benefícios do Sistema de Logging
+
+1. **Rastreabilidade**: Logs detalhados de todas as operações de validação
+2. **Debugging**: Nível DEBUG para desenvolvimento e troubleshooting
+3. **Monitoramento**: Logs estruturados para análise de performance e erros
+4. **Auditoria**: Histórico completo de validações de JWT
+5. **Manutenção**: Facilita a identificação e correção de problemas
 
 ## Exemplo de JWT Válido
 
