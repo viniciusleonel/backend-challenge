@@ -1,12 +1,13 @@
 package br.dev.viniciusleonel.backend_challenge.validators;
 
+import br.dev.viniciusleonel.backend_challenge.infra.exception.handler.InvalidClaimException;
 import br.dev.viniciusleonel.backend_challenge.utils.JwtGenerator;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class NameValidatorTest {
@@ -25,19 +26,15 @@ public class NameValidatorTest {
     public void testNameWithNumbers() {
         // Gera um token com um 'Name' inválido (Contém números)
         String token = JwtGenerator.generateJwtToken("Toninho123 Araujo", "Admin", "7841");
-        DecodedJWT jwt = JWT.decode(token);
-        NameValidator validator = new NameValidator();
-        assertFalse(validator.validate(jwt));
+        assertThrows(InvalidClaimException.class, () -> JwtValidator.isValid(token));
     }
 
     @Test
     public void testLongName() {
         // Gera um token com um 'Name' inválido (Contém mais de 256 caracteres)
         StringBuilder longName = new StringBuilder();
-        for (int i = 0; i < 257; i++) longName.append("a");
+        longName.append("a".repeat(257));
         String token = JwtGenerator.generateJwtToken(longName.toString(), "Admin", "7841");
-        DecodedJWT jwt = JWT.decode(token);
-        NameValidator validator = new NameValidator();
-        assertFalse(validator.validate(jwt));
+        assertThrows(InvalidClaimException.class, () -> JwtValidator.isValid(token));
     }
 }

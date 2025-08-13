@@ -1,5 +1,6 @@
 package br.dev.viniciusleonel.backend_challenge.validators;
 
+import br.dev.viniciusleonel.backend_challenge.infra.exception.handler.InvalidClaimException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
 public class NameValidator implements ClaimValidator{
@@ -8,6 +9,10 @@ public class NameValidator implements ClaimValidator{
     @Override
     public boolean validate(DecodedJWT jwt) {
         String name = jwt.getClaim("Name").asString();
-        return name != null && name.length() <= 256 && !name.matches(".*\\d.*");
+
+        if (name == null || name.length() >= 256 || name.matches(".*\\d.*")) {
+            throw new InvalidClaimException("Nome inválido");
+        }
+        return true;
     }
 }

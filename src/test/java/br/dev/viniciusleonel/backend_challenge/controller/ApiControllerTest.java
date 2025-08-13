@@ -45,7 +45,7 @@ public class ApiControllerTest {
         String invalidToken = JwtGenerator.generateJwtToken("Toninho123 Araujo", "Admin", "7841");
         mockMvc.perform(get("/api/validate")
                         .param("token", invalidToken))
-                .andExpect(status().isOk())
+                .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$").value(false));
     }
 
@@ -55,7 +55,7 @@ public class ApiControllerTest {
         String malformedToken = "invalid.token.format";
         mockMvc.perform(get("/api/validate")
                         .param("token", malformedToken))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$").value(false));
     }
 

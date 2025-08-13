@@ -1,5 +1,6 @@
 package br.dev.viniciusleonel.backend_challenge.validators;
 
+import br.dev.viniciusleonel.backend_challenge.infra.exception.handler.InvalidClaimException;
 import br.dev.viniciusleonel.backend_challenge.utils.NumberUtils;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
@@ -9,14 +10,20 @@ public class SeedValidator implements ClaimValidator{
     @Override
     public boolean validate(DecodedJWT jwt) {
         String seedStr = jwt.getClaim("Seed").asString();
-        if (seedStr == null) return false;
+        if (seedStr == null) {
+            throw new InvalidClaimException("Seed inválido");
+        }
 
         int seed;
         try {
             seed = Integer.parseInt(seedStr);
         } catch (NumberFormatException e) {
-            return false;
+            throw new InvalidClaimException("Seed inválido");
         }
-        return NumberUtils.isPrime(seed);
+
+        if (!NumberUtils.isPrime(seed)) {
+            throw new InvalidClaimException("Seed inválido");
+        }
+        return true;
     }
 }

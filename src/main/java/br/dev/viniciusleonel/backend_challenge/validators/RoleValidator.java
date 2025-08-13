@@ -1,5 +1,6 @@
 package br.dev.viniciusleonel.backend_challenge.validators;
 
+import br.dev.viniciusleonel.backend_challenge.infra.exception.handler.InvalidClaimException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
 import java.util.List;
@@ -11,6 +12,12 @@ public class RoleValidator implements ClaimValidator{
     @Override
     public boolean validate(DecodedJWT jwt) {
         String role = jwt.getClaim("Role").asString();
-        return role != null && VALID_ROLES.contains(role);
+
+        if (role == null || !VALID_ROLES.contains(role)) {
+            throw new InvalidClaimException("Role inválido");
+        }
+
+        return true;
+
     }
 }
