@@ -2,14 +2,15 @@
 
 ## Descrição
 
-Este é um projeto Spring Boot que implementa um sistema de validação de JWT (JSON Web Tokens) com validações específicas para claims personalizados. O projeto demonstra a aplicação de princípios SOLID, através de uma arquitetura extensível de validadores.
+Este é um projeto Spring Boot que implementa um sistema de validação de JWT (JSON Web Tokens) com validações específicas para claims personalizados. O projeto demonstra a aplicação de princípios SOLID, através de uma arquitetura extensível de validadores e tratamento robusto de exceções.
 
 ## Tecnologias Utilizadas
 
 - **Java 21**
 - **Spring Boot 3.5.4**
-- **Maven**
+- **Maven 3.9.8+**
 - **Auth0 JWT Library 4.4.0**
+- **JUnit 4.13.2** (para testes)
 - **Docker**
 
 ## Funcionalidades
@@ -19,8 +20,9 @@ Este é um projeto Spring Boot que implementa um sistema de validação de JWT (
 O sistema valida JWT tokens através de um endpoint REST que verifica:
 
 1. **Estrutura do Token**: Decodifica o JWT e verifica se é válido
-2. **Quantidade de Claims**: Confirma se o token contém exatamente o número esperado de claims
+2. **Quantidade de Claims**: Confirma se o token contém exatamente 3 claims (Name, Role, Seed)
 3. **Validação Individual**: Aplica validadores específicos para cada claim
+4. **Tratamento de Exceções**: Gerencia diferentes tipos de erros com códigos de status HTTP apropriados
 
 ### Claims Validados
 
@@ -47,31 +49,71 @@ Valida um JWT token.
 **Parâmetros:**
 - `token` (query parameter): O JWT token a ser validado
 
-**Resposta:**
-- `true`: Token válido
-- `false`: Token inválido
+**Respostas:**
+- **200 OK**: Token válido, retorna `true`
+- **400 Bad Request**: Token malformado ou inválido, retorna `false`
+- **422 Unprocessable Entity**: Claims inválidos, retorna `false`
 
 **Exemplo de uso:**
 ```bash
 GET /api/validate?token={{token}}
 ```
 
+**Exemplos de resposta:**
+```json
+// Token válido
+true
+
+// Token inválido
+false
+```
+
 ## Arquitetura
 
 ### Princípios SOLID
 
-O projeto busca implementar os princípios SOLID através de:
+O projeto implementa os princípios SOLID através de:
 
 - **Interface `ClaimValidator`**: Define o contrato para validadores
 - **Implementações específicas**: Cada tipo de claim tem seu próprio validador
 - **Extensibilidade**: Novos validadores podem ser adicionados sem modificar código existente
 - **`ClaimValidatorsList`**: Centraliza a configuração de validadores ativos
+- **Open/Closed Principle**: Sistema aberto para extensão, fechado para modificação
 
 ### Padrões de Design
 
 - **Strategy Pattern**: Diferentes estratégias de validação implementam a mesma interface
 - **Factory Pattern**: `ClaimValidatorsList` atua como factory para validadores
 - **Template Method**: Estrutura comum de validação definida em `JwtValidator`
+- **Exception Handler Pattern**: Tratamento centralizado de exceções
+
+### Estrutura de Pacotes
+
+```
+src/main/java/br/dev/viniciusleonel/backend_challenge/
+├── controller/          # Controladores REST
+├── infra/               # Infraestrutura da aplicação
+│   └── exception/       # Tratamento de exceções
+│       └── handler/     # Handlers globais de exceção
+├── utils/               # Utilitários (geração de JWT, validação de números)
+├── validators/          # Validadores de claims
+└── BackendChallengeApplication.java
+```
+
+## Tratamento de Exceções
+
+A aplicação possui um sistema robusto de tratamento de exceções:
+
+### GlobalExceptionHandler
+
+- **InvalidClaimException**: Retorna status 422 (Unprocessable Entity) para claims inválidos
+- **JWTDecodeException**: Retorna status 400 (Bad Request) para tokens malformados
+
+### Tipos de Erro
+
+1. **Claims Inválidos**: Nome com números, role inválido, seed não primo
+2. **Token Malformado**: Formato JWT inválido
+3. **Claims Ausentes**: Número incorreto de claims (deve ser exatamente 3)
 
 ## Como Executar
 
@@ -85,17 +127,20 @@ O projeto busca implementar os princípios SOLID através de:
 
 1. **Clone o repositório:**
 ```bash
+
 git clone https://github.com/viniciusleonel/backend-challenge
 cd backend-challenge
 ```
 
 2. **Compile o projeto:**
 ```bash
+
 mvn clean compile
 ```
 
 3. **Execute a aplicação:**
 ```bash
+
 mvn spring-boot:run
 ```
 
@@ -105,11 +150,13 @@ A aplicação estará disponível em `http://localhost:8080`
 
 1. **Construa a imagem:**
 ```bash
+
 docker build -t backend-challenge .
 ```
 
 2. **Execute o container:**
 ```bash
+
 docker run -p 8080:8080 backend-challenge
 ```
 
@@ -118,8 +165,17 @@ docker run -p 8080:8080 backend-challenge
 Execute os testes unitários:
 
 ```bash
-mvn test
+
+  mvn test
+  
 ```
+
+### Cobertura de Testes
+
+O projeto inclui testes abrangentes para:
+- **Validadores**: NameValidator, RoleValidator, SeedValidator
+- **JWT Validator**: Validação completa de tokens
+- **Controller**: Endpoints da API
 
 ## CI/CD
 
@@ -133,7 +189,7 @@ O workflow `ci.yml` é executado em:
 
 **Etapas do CI:**
 1. **Checkout do código** - Baixa o código fonte
-2. **Configuração do JDK 21** - Configura o ambiente Java
+2. **Configuração do JDK 21** - Configura o ambiente Java com Temurin
 3. **Compilação e testes** - Executa `mvn clean verify`
 
 ### Pipeline CD (Continuous Deployment)
@@ -180,6 +236,23 @@ Para testar a API, você pode usar um JWT com a seguinte estrutura:
 - O nome não pode conter números
 - O role deve ser "Admin", "Member" ou "External"
 - O seed deve ser um número primo
+- O token deve conter exatamente 3 claims
+
+## Utilitários
+
+### JwtGenerator
+
+Classe utilitária para gerar tokens JWT de teste:
+```java
+String token = JwtGenerator.generateJwtToken("Nome", "Admin", "7841");
+```
+
+### NumberUtils
+
+Utilitário para validação de números primos:
+```java
+boolean isPrime = NumberUtils.isPrime(7841); // true
+```
 
 ## Contribuição
 
@@ -188,6 +261,20 @@ Para adicionar novos validadores:
 1. Implemente a interface `ClaimValidator`
 2. Adicione o novo validador em `ClaimValidatorsList.getValidators()`
 3. Implemente os testes correspondentes
+4. Atualize a documentação
+
+### Estrutura de um Validador
+
+```java
+public class CustomValidator implements ClaimValidator {
+    @Override
+    public boolean validate(DecodedJWT jwt) {
+        // Lógica de validação
+        // Lance InvalidClaimException para erros
+        return true;
+    }
+}
+```
 
 ## Licença
 
