@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -33,7 +34,7 @@ public class ApiControllerTest {
     public void testValidateValidToken() throws Exception {
         // Valida um token JWT válido: todos os claims estão corretos (Name sem números, Role válido, Seed primo)
         String validToken = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", "7841");
-        mockMvc.perform(get("/api/validate")
+        mockMvc.perform(post("/api/validate")
                         .param("token", validToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(true));
@@ -43,7 +44,7 @@ public class ApiControllerTest {
     public void testValidateInvalidToken() throws Exception {
         // Valida um token JWT inválido: claim Name contém números, o que é proibido
         String invalidToken = JwtGenerator.generateJwtToken("Toninho123 Araujo", "Admin", "7841");
-        mockMvc.perform(get("/api/validate")
+        mockMvc.perform(post("/api/validate")
                         .param("token", invalidToken))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$").value(false));
@@ -53,7 +54,7 @@ public class ApiControllerTest {
     public void testValidateMalformedToken() throws Exception {
         // Valida um token JWT malformado: formato inválido, não é um JWT
         String malformedToken = "invalid.token.format";
-        mockMvc.perform(get("/api/validate")
+        mockMvc.perform(post("/api/validate")
                         .param("token", malformedToken))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$").value(false));
@@ -62,7 +63,7 @@ public class ApiControllerTest {
     @Test
     public void testValidateMissingToken() throws Exception {
         // Valida requisição sem o parâmetro 'token': espera-se erro 400 (Bad Request)
-        mockMvc.perform(get("/api/validate"))
+        mockMvc.perform(post("/api/validate"))
                 .andExpect(status().isBadRequest()); // Ou status adequado, dependendo da configuração
     }
 }

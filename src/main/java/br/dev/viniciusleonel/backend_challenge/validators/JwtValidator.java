@@ -1,42 +1,52 @@
 package br.dev.viniciusleonel.backend_challenge.validators;
 
-import br.dev.viniciusleonel.backend_challenge.controller.ApiController;
-import br.dev.viniciusleonel.backend_challenge.utils.JwtDecoder;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import com.auth0.jwt.interfaces.DecodedJWT;
+
+import br.dev.viniciusleonel.backend_challenge.infra.tracing.TraceSpan;
+import br.dev.viniciusleonel.backend_challenge.utils.JwtDecoder;
 
 public class JwtValidator {
 
     private static final Logger log = LoggerFactory.getLogger(JwtValidator.class);
-
-    // Busca a lista de validadores, mantendo o princípio 'Open Closed'
     private static final List<ClaimValidator> validators = JwtValidationConfig.getValidators();
 
     public static boolean isValid(String token) {
-
+        try (TraceSpan span = new TraceSpan("JwtValidation")) {
+            span.addTag("totalValidators", String.valueOf(validators.size()));
+            span.addBusinessContext("operation", "jwt_validation");
+            
             log.info("Iniciando validacao do JWT");
 
-            DecodedJWT jwt = JwtDecoder.decode(token);
+            DecodedJWT jwt;
+            try (TraceSpan decodeSpan = new TraceSpan("JwtDecode")) {
+                jwt = JwtDecoder.decode(token);
+                decodeSpan.addTag("claimsCount", String.valueOf(jwt.getClaims().size()));
+            }
 
             log.debug("Verificando total de claims");
-            // Valida o total de claims presentes no JWT
             if (jwt.getClaims().size() != validators.size()) {
+                span.addError("Total de claims invalido");
                 log.error("Total de claims invalido: {}", jwt.getClaims().size());
                 return false;
             }
 
             log.info("Total de claims valido: {}", jwt.getClaims().size());
             log.info("Chamando validadores de claims");
-            // Chama o metodo 'validate' de cada validador da lista
+            
             for (ClaimValidator validator : validators) {
-                validator.validate(jwt);
+                try (TraceSpan validatorSpan = new TraceSpan("Validator_" + validator.getClass().getSimpleName())) {
+                    validator.validate(jwt);
+                    validatorSpan.addTag("validator", validator.getClass().getSimpleName());
+                }
             }
 
             log.info("JWT passou nas validacoes");
             return true;
+        }
     }
 }

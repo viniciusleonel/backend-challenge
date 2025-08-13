@@ -19,7 +19,7 @@ public class JwtDecoder {
             return decodedJwt;
         } catch (JWTDecodeException e) {
             log.error("Falha ao decodificar JWT: {}", e.getMessage());
-            throw new JWTDecodeException("Falha ao decodificar, JWT é nulo ou vazio");
+            throw new JWTDecodeException("Falha ao decodificar, JWT nulo ou vazio");
         }
     }
 }

@@ -4,6 +4,14 @@
 
 Este é um projeto Spring Boot que implementa um sistema de validação de JWT (JSON Web Tokens) com validações específicas para claims personalizados. O projeto demonstra a aplicação de princípios SOLID, através de uma arquitetura extensível de validadores e tratamento robusto de exceções.
 
+**Destaques da Implementação:**
+- ✅ **Sistema de Tracing Distribuído** completo com spans e traces
+- ✅ **Monitoring em Tempo Real** com métricas detalhadas de performance
+- ✅ **Observabilidade Avançada** com logging estruturado e MDC
+- ✅ **Pipelines CI/CD** automatizados com GitHub Actions
+- ✅ **Arquitetura SOLID** com validadores extensíveis
+- ✅ **Tratamento Robusto de Exceções** com handlers globais
+
 ### Premissas Assumidas
 
 **Importante**: Conforme especificado no desafio, o JWT é recebido "por parâmetros" e retorna um boolean. Considerando que:
@@ -31,6 +39,7 @@ Este é um projeto Spring Boot que implementa um sistema de validação de JWT (
 - **JUnit 4.13.2** (para testes)
 - **SLF4J + Logback** (para logging)
 - **Docker**
+- **GitHub Actions** (CI/CD)
 
 ## Funcionalidades
 
@@ -61,7 +70,7 @@ O sistema valida JWT tokens através de um endpoint REST que verifica:
 
 ## API Endpoints
 
-### GET /api/validate
+### POST /api/validate
 
 Valida um JWT token recebido via query parameter.
 
@@ -75,7 +84,7 @@ Valida um JWT token recebido via query parameter.
 
 **Exemplo de uso:**
 ```bash
-GET /api/validate?token={{token}}
+POST /api/validate?token={{token}}
 ```
 
 **Exemplos de resposta:**
@@ -88,6 +97,28 @@ false
 ```
 
 **Nota**: O JWT é recebido via query parameter conforme especificado no desafio, facilitando testes diretos e validação rápida de tokens.
+
+### Endpoints de Monitoring e Observabilidade
+
+#### GET /monitoring/metrics
+Retorna métricas detalhadas em tempo real da aplicação, incluindo:
+- Contadores de requisições (total, sucesso, falha)
+- Métricas de performance por endpoint
+- Estatísticas de validação de JWT
+- Erros de validação de claims
+- Contexto de tracing atual
+
+#### GET /monitoring/health
+Verifica a saúde da aplicação com métricas de performance e contexto de tracing.
+
+#### GET /monitoring/tracing/current
+Retorna informações sobre o trace e span atualmente em execução.
+
+#### GET /monitoring/tracing/endpoints
+Retorna estatísticas de traces organizadas por endpoint.
+
+#### POST /monitoring/metrics/reset
+Reseta todas as métricas coletadas (útil para testes e desenvolvimento).
 
 ## Arquitetura
 
@@ -107,23 +138,100 @@ O projeto implementa os princípios SOLID através de:
 - **Factory Pattern**: `JwtValidationConfig` atua como factory para validadores
 - **Template Method**: Estrutura comum de validação definida em `JwtValidator`
 - **Exception Handler Pattern**: Tratamento centralizado de exceções
+- **Observer Pattern**: Sistema de métricas e monitoring
+- **Builder Pattern**: Construção de spans e traces
 
 ### Estrutura de Pacotes
 
 ```
 src/main/java/br/dev/viniciusleonel/backend_challenge/
 ├── controller/          # Controladores REST
+│   ├── ApiController.java
+│   └── MonitoringController.java
 ├── infra/               # Infraestrutura da aplicação
 │   ├── config/          # Configurações da aplicação
-│   │   └── WebConfig.java
+│   │   ├── WebConfig.java
+│   │   └── ObservabilityConfig.java
 │   ├── exception/       # Tratamento de exceções
 │   │   └── handler/     # Handlers globais de exceção
-│   └── interceptor/     # Interceptadores de requisição
-│       └── LoggingInterceptor.java
+│   │       └── GlobalExceptionHandler.java
+│   ├── interceptor/     # Interceptadores de requisição
+│   │   └── LoggingInterceptor.java
+│   ├── monitoring/      # Sistema de monitoring
+│   │   └── MetricsCollector.java
+│   └── tracing/         # Sistema de tracing distribuído
+│       ├── TraceContext.java
+│       └── TraceSpan.java
 ├── utils/               # Utilitários (geração de JWT, validação de números)
 ├── validators/          # Validadores de claims
 └── BackendChallengeApplication.java
 ```
+
+## Sistema de Tracing Distribuído
+
+A aplicação implementa um sistema completo de **Distributed Tracing** que rastreia o fluxo de cada requisição através de todos os componentes.
+
+### Conceitos de Tracing
+
+- **Trace**: Representa uma única requisição HTTP completa
+- **Span**: Representa uma operação específica dentro de um trace
+- **Context**: Informações passadas entre spans (TraceID, SpanID, ParentSpanID)
+- **Tags**: Metadados associados a cada span
+- **Metrics**: Medições de performance e negócio
+
+### Hierarquia de Spans
+
+```
+Trace: a1b2c3d4e5f6g7h8
+├── Span 1: Recepção da requisição (Controller)
+│   ├── Span 2: Validação JWT
+│   │   ├── Span 3: Decodificação JWT
+│   │   ├── Span 4: Validação de claims
+│   │   │   ├── Span 5: Validação do Nome
+│   │   │   ├── Span 6: Validação do Role
+│   │   │   └── Span 7: Validação do Seed
+│   │   └── Span 8: Resposta
+└── Span 9: Envio da resposta HTTP
+```
+
+### TraceContext
+
+O `TraceContext` gerencia automaticamente:
+- **Geração de IDs únicos** para traces e spans
+- **Hierarquia de spans** com relacionamento pai-filho
+- **Contexto MDC** para correlacionar logs
+- **Operações nomeadas** para identificação clara
+
+## Sistema de Monitoring em Tempo Real
+
+O sistema coleta e disponibiliza métricas detalhadas sobre:
+
+### Métricas de Performance
+- **Tempo de Resposta**: Média, mínimo, máximo por endpoint
+- **Throughput**: Requisições por segundo
+- **Latência**: Tempo de processamento por operação
+- **Concorrência**: Número de requisições simultâneas
+
+### Métricas de Negócio
+- **Validação de JWT**: Taxa de sucesso, tipos de erro
+- **Claims**: Distribuição de erros por tipo de validação
+- **Endpoints**: Uso e performance por rota
+- **Usuários**: Padrões de uso e comportamento
+
+### Métricas de Infraestrutura
+- **Status de Saúde**: Disponibilidade da aplicação
+- **Recursos**: Uso de memória, CPU, threads
+- **Erros**: Taxa de erro, tipos de exceção
+- **Dependências**: Status de serviços externos
+
+### MetricsCollector
+
+O `MetricsCollector` implementa:
+- **Contadores atômicos** para métricas thread-safe
+- **Métricas por endpoint** com agregação automática
+- **Histórico de tempos de resposta** (últimos 1000 por endpoint)
+- **Métricas de claims** com categorização de erros
+- **Performance metrics** com cálculos em tempo real
 
 ## Tratamento de Exceções
 
@@ -152,20 +260,17 @@ A aplicação possui um sistema robusto de tratamento de exceções:
 
 1. **Clone o repositório:**
 ```bash
-
 git clone https://github.com/viniciusleonel/backend-challenge
 cd backend-challenge
 ```
 
 2. **Compile o projeto:**
 ```bash
-
 mvn clean compile
 ```
 
 3. **Execute a aplicação:**
 ```bash
-
 mvn spring-boot:run
 ```
 
@@ -175,13 +280,11 @@ A aplicação estará disponível em `http://localhost:8080`
 
 1. **Construa a imagem:**
 ```bash
-
 docker build -t backend-challenge .
 ```
 
 2. **Execute o container:**
 ```bash
-
 docker run -p 8080:8080 backend-challenge
 ```
 
@@ -190,9 +293,7 @@ docker run -p 8080:8080 backend-challenge
 Execute os testes unitários:
 
 ```bash
-
-  mvn test
-  
+mvn test
 ```
 
 ### Cobertura de Testes
@@ -201,6 +302,8 @@ O projeto inclui testes abrangentes para:
 - **Validadores**: NameValidator, RoleValidator, SeedValidator
 - **JWT Validator**: Validação completa de tokens
 - **Controller**: Endpoints da API
+- **Tracing**: TraceContext e TraceSpan
+- **Monitoring**: MetricsCollector
 
 ## CI/CD
 
@@ -250,8 +353,8 @@ logging.level.root=INFO
 # Nível de log específico para o pacote da aplicação
 logging.level.br.dev.viniciusleonel.backend_challenge=DEBUG
 
-# Formato de saída dos logs com MDC para observabilidade
-logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{requestId}] [%X{endpoint}] - %msg%n
+# Formato de saída dos logs com MDC, Tracing e Monitoring
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{requestId}] [%X{endpoint}] [%X{traceId}] [%X{spanId}] [%X{operationName}] [%X{duration}ms] - %msg%n
 ```
 
 ### Configurações de Observabilidade
@@ -262,6 +365,15 @@ O sistema de observabilidade é configurado através de:
 2. **MDC**: Contexto injetado automaticamente em cada requisição
 3. **GlobalExceptionHandler**: Logging automático de todas as exceções
 4. **WebConfig**: Registro automático do interceptor
+5. **ObservabilityConfig**: Configuração de agendamento e limpeza de métricas
+
+### ObservabilityConfig
+
+Configuração avançada de observabilidade com:
+- **Agendamento automático** de tarefas de limpeza
+- **Logging periódico** de métricas para monitoramento
+- **Limpeza automática** de métricas antigas
+- **Configuração de retenção** de dados históricos
 
 ## Sistema de Logging
 
@@ -271,12 +383,12 @@ A aplicação implementa um sistema robusto de logging utilizando SLF4J com Logb
 
 - **Nível Global**: INFO (configurado em `logging.level.root`)
 - **Nível da Aplicação**: DEBUG (configurado para o pacote principal)
-- **Formato**: Timestamp, Thread, Nível, Logger, RequestID, Endpoint e Mensagem
+- **Formato**: Timestamp, Thread, Nível, Logger, RequestID, Endpoint, TraceID, SpanID, Operação e Duração
 
-### Padrão de Logging com MDC
+### Padrão de Logging com MDC e Tracing
 
 ```properties
-logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{requestId}] [%X{endpoint}] - %msg%n
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{requestId}] [%X{endpoint}] [%X{traceId}] [%X{spanId}] [%X{operationName}] [%X{duration}ms] - %msg%n
 ```
 
 ### Sistema de Correlação de Requisições
@@ -285,6 +397,10 @@ A aplicação implementa **MDC (Mapped Diagnostic Context)** para correlacionar 
 
 - **RequestID**: UUID único gerado automaticamente para cada requisição
 - **Endpoint**: URI da requisição sendo processada
+- **TraceID**: ID único do trace distribuído
+- **SpanID**: ID do span atual sendo executado
+- **Operação**: Nome da operação em execução
+- **Duração**: Tempo de execução em milissegundos
 - **Correlação**: Todos os logs de uma requisição compartilham o mesmo contexto
 
 ### LoggingInterceptor
@@ -294,7 +410,8 @@ O `LoggingInterceptor` é responsável por:
 1. **Geração automática de RequestID** para cada requisição
 2. **Captura do endpoint** sendo acessado
 3. **Injeção do contexto MDC** em todas as requisições
-4. **Limpeza automática** do contexto ao final da requisição
+4. **Medição de tempo** de resposta
+5. **Limpeza automática** do contexto ao final da requisição
 
 ### Logs Implementados
 
@@ -333,35 +450,40 @@ O `LoggingInterceptor` é responsável por:
 - **ERROR**: Claims inválidas detectadas com detalhes da exceção
 - **ERROR**: Tokens inválidos detectados com detalhes da exceção
 
-### Exemplo de Saída de Logs com MDC
+#### TraceContext
+- **DEBUG**: Início e fim de traces e spans
+- **DEBUG**: Mudanças de contexto entre spans
+
+#### MetricsCollector
+- **INFO**: Métricas coletadas com sucesso
+- **ERROR**: Erros na coleta de métricas
+
+### Exemplo de Saída de Logs com MDC, Tracing e Monitoring
 
 ```
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.c.ApiController [abc123-def456] [/api/validate] - Endpoint /api/validate chamado
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] - Iniciando validacao do JWT
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.u.JwtDecoder [abc123-def456] [/api/validate] - Iniciando decodificacao do JWT
-2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.u.JwtDecoder [abc123-def456] [/api/validate] - JWT decodificado com sucesso
-2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] - Verificando total de claims
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] - Total de claims valido: 3
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] - Chamando validadores de claims
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.NameValidator [abc123-def456] [/api/validate] - Iniciando validacao da claim Name
-2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.NameValidator [abc123-def456] [/api/validate] - Nome valido: Toninho Araujo
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.RoleValidator [abc123-def456] [/api/validate] - Iniciando validacao da claim Role
-2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.RoleValidator [abc123-def456] [/api/validate] - Role valido: Admin
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.SeedValidator [abc123-def456] [/api/validate] - Iniciando validacao da claim Seed
-2024-01-15 10:30:15 [http-nio-8080-exec-1] DEBUG b.d.v.b.v.SeedValidator [abc123-def456] [/api/validate] - Seed valido: 7841
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] - JWT passou nas validacoes
-2024-01-15 10:30:15 [http-nio-8080-exec-1] INFO  b.d.v.b.c.ApiController [abc123-def456] [/api/validate] - JWT valido
+2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.c.ApiController [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span001] [validateJwt] [45ms] - Endpoint /api/validate chamado
+2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span002] [JwtValidation] [23ms] - Iniciando validacao do JWT
+2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.u.JwtDecoder [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span003] [JwtDecode] [8ms] - Iniciando decodificacao do JWT
+2024-01-15 16:50:23 [http-nio-8080-exec-1] DEBUG b.d.v.b.u.JwtDecoder [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span003] [JwtDecode] [8ms] - JWT decodificado com sucesso
+2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.v.NameValidator [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span004] [Validator_NameValidator] [5ms] - Nome valido: Toninho Araujo
+2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.v.RoleValidator [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span005] [Validator_RoleValidator] [3ms] - Role valido: Admin
+2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.v.SeedValidator [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span006] [Validator_SeedValidator] [7ms] - Seed valido: 7841
+2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span002] [JwtValidation] [23ms] - JWT passou nas validacoes
+2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.c.ApiController [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span001] [validateJwt] [45ms] - JWT valido
 ```
 
 ### Benefícios do Sistema de Logging e Observabilidade
 
 1. **Rastreabilidade Automática**: Cada requisição recebe um ID único automaticamente
 2. **Correlação de Logs**: Todos os logs de uma requisição podem ser agrupados pelo RequestID
-3. **Debugging Aprimorado**: Facilita a identificação de problemas específicos por requisição
-4. **Monitoramento Estruturado**: Logs organizados para análise de performance e erros
-5. **Auditoria Completa**: Histórico detalhado de todas as validações de JWT
-6. **Manutenção Simplificada**: Facilita a identificação e correção de problemas
-7. **Observabilidade em Produção**: Sistema preparado para ambientes de produção com ferramentas de monitoramento
+3. **Tracing Distribuído**: Rastreamento completo do fluxo através de todos os componentes
+4. **Debugging Aprimorado**: Facilita a identificação de problemas específicos por requisição
+5. **Monitoramento Estruturado**: Logs organizados para análise de performance e erros
+6. **Auditoria Completa**: Histórico detalhado de todas as validações de JWT
+7. **Manutenção Simplificada**: Facilita a identificação e correção de problemas
+8. **Observabilidade em Produção**: Sistema preparado para ambientes de produção com ferramentas de monitoramento
+9. **Performance Monitoring**: Métricas em tempo real de todas as operações
+10. **Alertas Proativos**: Detecção antecipada de problemas
 
 ## Observabilidade
 
@@ -372,17 +494,29 @@ A aplicação implementa um sistema completo de observabilidade que vai além do
 #### 1. Logging Estruturado
 - **Formato consistente** com timestamp, thread, nível e contexto
 - **Níveis apropriados** (INFO, DEBUG, ERROR) para diferentes cenários
-- **Contexto rico** com informações de requisição e endpoint
+- **Contexto rico** com informações de requisição, endpoint, tracing e performance
 
 #### 2. Correlação de Requisições
 - **RequestID único** para cada requisição HTTP
 - **Contexto compartilhado** entre todos os componentes da aplicação
 - **Rastreabilidade completa** do fluxo de validação
 
-#### 3. Tratamento de Exceções
+#### 3. Tracing Distribuído
+- **TraceID único** para cada requisição
+- **Spans hierárquicos** para operações específicas
+- **Contexto de operação** com nomes descritivos
+- **Relacionamento pai-filho** entre spans
+
+#### 4. Tratamento de Exceções
 - **Logging detalhado** de todas as exceções
 - **Contexto preservado** mesmo em situações de erro
 - **Stack traces** para debugging eficiente
+
+#### 5. Monitoring em Tempo Real
+- **Métricas de performance** por endpoint
+- **Estatísticas de negócio** (JWT, claims)
+- **Health checks** com contexto de tracing
+- **Métricas de infraestrutura** e recursos
 
 ### Casos de Uso da Observabilidade
 
@@ -392,6 +526,8 @@ A aplicação implementa um sistema completo de observabilidade que vai além do
 4. **Auditoria de Segurança**: Histórico completo de validações de JWT
 5. **Troubleshooting**: Correlacionar logs de diferentes componentes da aplicação
 6. **Análise de Padrões**: Identificar padrões de uso e comportamento
+7. **Performance Tuning**: Identificar gargalos e otimizações
+8. **Capacity Planning**: Análise de uso de recursos e escalabilidade
 
 ### Estrutura de Arquivos de Observabilidade
 
@@ -399,12 +535,21 @@ A aplicação implementa um sistema completo de observabilidade que vai além do
 src/main/java/br/dev/viniciusleonel/backend_challenge/
 ├── infra/
 │   ├── config/              # Configurações da aplicação
-│   │   └── WebConfig.java   # Configuração do interceptor
+│   │   ├── WebConfig.java   # Configuração do interceptor
+│   │   └── ObservabilityConfig.java # Configuração de observabilidade
 │   ├── exception/            # Tratamento de exceções
 │   │   └── handler/         # Handlers globais de exceção
 │   │       └── GlobalExceptionHandler.java
-│   └── interceptor/         # Interceptadores de requisição
-│       └── LoggingInterceptor.java
+│   ├── interceptor/         # Interceptadores de requisição
+│   │   └── LoggingInterceptor.java
+│   ├── tracing/             # Sistema de tracing
+│   │   ├── TraceContext.java # Contexto de tracing
+│   │   └── TraceSpan.java   # Implementação de spans
+│   └── monitoring/          # Sistema de monitoring
+│       └── MetricsCollector.java # Coletor de métricas
+├── controller/
+│   ├── ApiController.java   # Controller principal
+│   └── MonitoringController.java # Controller de monitoring
 ```
 
 ### Configuração Automática
@@ -413,8 +558,10 @@ O sistema de observabilidade é configurado automaticamente através de:
 
 - **LoggingInterceptor**: Aplicado automaticamente a todas as rotas `/api/**`
 - **MDC**: Contexto injetado automaticamente em cada requisição
-- **Logging**: Formato configurado para exibir RequestID e Endpoint
+- **Logging**: Formato configurado para exibir RequestID, Endpoint, TraceID, SpanID, Operação e Duração
 - **Exception Handling**: Logging automático de todas as exceções
+- **Tracing**: Geração automática de traces e spans
+- **Monitoring**: Coleta automática de métricas
 
 ### Integração com Ferramentas de Monitoramento
 
@@ -425,16 +572,21 @@ O sistema está preparado para integração com:
 - **Splunk**
 - **Datadog**
 - **New Relic**
+- **Jaeger** (Distributed Tracing)
+- **Zipkin** (Tracing)
+- **OpenTelemetry** (Padrão aberto)
 
 ### Métricas Disponíveis
 
-Através dos logs estruturados, é possível extrair:
+Através dos logs estruturados e endpoints de monitoring, é possível extrair:
 
 - **Volume de requisições** por endpoint
 - **Taxa de sucesso/erro** por tipo de validação
 - **Tempo de resposta** por operação
 - **Padrões de uso** dos diferentes tipos de JWT
 - **Distribuição de erros** por tipo de claim inválida
+- **Performance por componente** (validadores, decoders)
+- **Tracing statistics** por endpoint e operação
 
 ## Exemplo de JWT Válido
 
@@ -500,6 +652,27 @@ boolean isPrime = NumberUtils.isPrime(7841); // true
 - **Eficiência**: Menos overhead de serialização/deserialização
 - **Clareza**: Resposta imediata sem necessidade de parsing
 
+### Sistema de Tracing Distribuído
+
+**Decisão**: Implementação completa de tracing com spans e traces hierárquicos.
+
+**Justificativa**:
+- **Observabilidade**: Rastreamento completo do fluxo de requisições
+- **Debugging**: Facilita identificação de gargalos e problemas
+- **Monitoramento**: Métricas detalhadas de performance
+- **Produção**: Sistema preparado para ambientes de produção
+- **Integração**: Compatível com ferramentas profissionais de tracing
+
+### Sistema de Monitoring
+
+**Decisão**: Coleta automática de métricas em tempo real.
+
+**Justificativa**:
+- **Performance**: Monitoramento contínuo de métricas críticas
+- **Alertas**: Detecção proativa de problemas
+- **Capacidade**: Análise de uso de recursos e escalabilidade
+- **Negócio**: Insights sobre uso e comportamento dos usuários
+
 ## Contribuição
 
 Para adicionar novos validadores:
@@ -515,6 +688,13 @@ Para adicionar novos roles:
 3. Implemente os testes correspondentes
 4. Atualize a documentação
 
+Para adicionar novas métricas:
+
+1. Implemente o método de coleta em `MetricsCollector`
+2. Adicione o endpoint correspondente em `MonitoringController`
+3. Implemente os testes correspondentes
+4. Atualize a documentação
+
 ### Estrutura de um Validador
 
 ```java
@@ -527,6 +707,53 @@ public class CustomValidator implements ClaimValidator {
     }
 }
 ```
+
+### Estrutura de uma Nova Métrica
+
+```java
+// Em MetricsCollector
+public void recordCustomMetric(String metricName, Object value) {
+    // Implementação da coleta
+}
+
+// Em MonitoringController
+@GetMapping("/custom-metric")
+public ResponseEntity<Object> getCustomMetric() {
+    // Implementação do endpoint
+}
+```
+
+## Roadmap de Evolução
+
+### **Fase 1: Implementação Básica** ✅
+- ✅ Validação de JWT com claims personalizados
+- ✅ Arquitetura SOLID com validadores extensíveis
+- ✅ Tratamento robusto de exceções
+- ✅ Logging estruturado com MDC
+- ✅ Sistema de tracing básico com spans
+- ✅ Métricas de performance básicas
+- ✅ Endpoints de monitoring
+- ✅ Pipelines CI/CD com GitHub Actions
+
+### **Fase 2: Observabilidade Avançada** ✅
+- ✅ Tracing distribuído completo
+- ✅ Sistema de monitoring em tempo real
+- ✅ Métricas detalhadas de performance e negócio
+- ✅ Configuração automática de observabilidade
+- ✅ Logging aprimorado com contexto completo
+
+### **Fase 3: Integração Externa** 🔄
+- 🔄 Integração com Jaeger para visualização de traces
+- 🔄 Dashboards Grafana para métricas
+- 🔄 Alertas automáticos baseados em métricas
+- 🔄 Métricas customizadas para negócio
+
+### **Fase 4: Observabilidade de Produção** 📋
+- 📋 OpenTelemetry para padrão aberto
+- 📋 Distributed tracing entre serviços
+- 📋 Service mesh integration
+- 📋 AI-powered anomaly detection
+- 📋 SLA/SLO monitoring
 
 ## Licença
 
