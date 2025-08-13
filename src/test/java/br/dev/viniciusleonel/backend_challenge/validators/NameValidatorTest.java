@@ -11,8 +11,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 public class NameValidatorTest {
 
+
     @Test
     public void testValidName() {
+        // Gera um token com um 'Name' válido
         String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", "7841");
         DecodedJWT jwt = JWT.decode(token);
         NameValidator validator = new NameValidator();
@@ -21,6 +23,7 @@ public class NameValidatorTest {
 
     @Test
     public void testNameWithNumbers() {
+        // Gera um token com um 'Name' inválido (Contém números)
         String token = JwtGenerator.generateJwtToken("Toninho123 Araujo", "Admin", "7841");
         DecodedJWT jwt = JWT.decode(token);
         NameValidator validator = new NameValidator();
@@ -29,6 +32,7 @@ public class NameValidatorTest {
 
     @Test
     public void testLongName() {
+        // Gera um token com um 'Name' inválido (Contém mais de 256 caracteres)
         StringBuilder longName = new StringBuilder();
         for (int i = 0; i < 257; i++) longName.append("a");
         String token = JwtGenerator.generateJwtToken(longName.toString(), "Admin", "7841");

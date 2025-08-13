@@ -11,7 +11,6 @@ public class JwtValidator {
     // Busca a lista de validadores, mantendo o princípio 'Open Closed'
     private static final List<ClaimValidator> validators = ClaimValidatorsList.getValidators();
 
-
     public static boolean isValid(String token) {
         try {
             DecodedJWT jwt = JWT.decode(token);
