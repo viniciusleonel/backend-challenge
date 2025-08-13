@@ -77,13 +77,13 @@ O projeto implementa os princípios SOLID através de:
 - **Interface `ClaimValidator`**: Define o contrato para validadores
 - **Implementações específicas**: Cada tipo de claim tem seu próprio validador
 - **Extensibilidade**: Novos validadores podem ser adicionados sem modificar código existente
-- **`ClaimValidatorsList`**: Centraliza a configuração de validadores ativos
+- **`JwtValidationConfig`**: Centraliza a configuração de validadores ativos e roles válidos
 - **Open/Closed Principle**: Sistema aberto para extensão, fechado para modificação
 
 ### Padrões de Design
 
 - **Strategy Pattern**: Diferentes estratégias de validação implementam a mesma interface
-- **Factory Pattern**: `ClaimValidatorsList` atua como factory para validadores
+- **Factory Pattern**: `JwtValidationConfig` atua como factory para validadores
 - **Template Method**: Estrutura comum de validação definida em `JwtValidator`
 - **Exception Handler Pattern**: Tratamento centralizado de exceções
 
@@ -259,7 +259,13 @@ boolean isPrime = NumberUtils.isPrime(7841); // true
 Para adicionar novos validadores:
 
 1. Implemente a interface `ClaimValidator`
-2. Adicione o novo validador em `ClaimValidatorsList.getValidators()`
+2. Adicione o novo validador em `JwtValidationConfig.getValidators()`
+3. Implemente os testes correspondentes
+4. Atualize a documentação
+
+Para adicionar novos roles:
+
+1. Adicione o novo role na lista `VALID_ROLES` em `JwtValidationConfig.java`
 3. Implemente os testes correspondentes
 4. Atualize a documentação
 
