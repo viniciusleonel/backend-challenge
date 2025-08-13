@@ -4,7 +4,7 @@ public class GenerateJwtToken {
     public static void main(String[] args) {
         String name = "Toninho Araujo";
         String role = "Admin";
-        String seed = "8";
+        String seed = "";
 
         String token = JwtGenerator.generateJwtToken(name, role, seed);
         System.out.println("JWT Gerado:");
