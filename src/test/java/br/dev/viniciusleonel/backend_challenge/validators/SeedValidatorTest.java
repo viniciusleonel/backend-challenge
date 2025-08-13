@@ -1,5 +1,6 @@
 package br.dev.viniciusleonel.backend_challenge.validators;
 
+import br.dev.viniciusleonel.backend_challenge.infra.exception.handler.InvalidClaimException;
 import br.dev.viniciusleonel.backend_challenge.utils.JwtGenerator;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
@@ -7,8 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class SeedValidatorTest {
@@ -32,23 +32,20 @@ public class SeedValidatorTest {
     public void testNonPrimeSeed() {
         // Gera um token com um seed não primo (ex.: 4)
         String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", "4");
-        DecodedJWT jwt = JWT.decode(token);
-        assertFalse(validator.validate(jwt)); // 4 não é primo
+        assertThrows(InvalidClaimException.class, () -> JwtValidator.isValid(token));
     }
 
     @Test
     public void testNullSeed() {
         // Simula um token com seed nulo (ajustado manualmente para teste)
-        String invalidToken = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", null);
-        DecodedJWT jwt = JWT.decode(invalidToken);
-        assertFalse(validator.validate(jwt)); // Deve falhar por seed nulo
+        String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", null);
+        assertThrows(InvalidClaimException.class, () -> JwtValidator.isValid(token));
     }
 
     @Test
     public void testNonNumericSeed() {
         // Gera um token com um seed não numérico (ex.: "abc")
         String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", "abc");
-        DecodedJWT jwt = JWT.decode(token);
-        assertFalse(validator.validate(jwt)); // "abc" não é número
+        assertThrows(InvalidClaimException.class, () -> JwtValidator.isValid(token));
     }
 }
