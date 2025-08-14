@@ -2,51 +2,57 @@ package br.dev.viniciusleonel.backend_challenge.validators;
 
 import java.util.List;
 
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 
-import br.dev.viniciusleonel.backend_challenge.infra.tracing.TraceSpan;
 import br.dev.viniciusleonel.backend_challenge.utils.JwtDecoder;
 
+@Component
 public class JwtValidator {
 
     private static final Logger log = LoggerFactory.getLogger(JwtValidator.class);
-    private static final List<ClaimValidator> validators = JwtValidationConfig.getValidators();
+    private final List<ClaimValidator> validators;
 
-    public static boolean isValid(String token) {
-        try (TraceSpan span = new TraceSpan("JwtValidation")) {
-            span.addTag("totalValidators", String.valueOf(validators.size()));
-            span.addBusinessContext("operation", "jwt_validation");
-            
-            log.info("Iniciando validacao do JWT");
+    public JwtValidator() {
+        this.validators = JwtValidationConfig.getValidators();
+    }
 
-            DecodedJWT jwt;
-            try (TraceSpan decodeSpan = new TraceSpan("JwtDecode")) {
-                jwt = JwtDecoder.decode(token);
-                decodeSpan.addTag("claimsCount", String.valueOf(jwt.getClaims().size()));
-            }
+    public boolean isValid(String token) {
+        log.info("Iniciando validacao do JWT");
 
-            log.debug("Verificando total de claims");
-            if (jwt.getClaims().size() != validators.size()) {
-                span.addError("Total de claims invalido");
-                log.error("Total de claims invalido: {}", jwt.getClaims().size());
-                return false;
-            }
-
-            log.info("Total de claims valido: {}", jwt.getClaims().size());
-            log.info("Chamando validadores de claims");
-            
-            for (ClaimValidator validator : validators) {
-                try (TraceSpan validatorSpan = new TraceSpan("Validator_" + validator.getClass().getSimpleName())) {
-                    validator.validate(jwt);
-                    validatorSpan.addTag("validator", validator.getClass().getSimpleName());
-                }
-            }
-
-            log.info("JWT passou nas validacoes");
-            return true;
+        if (token == null || token.trim().isEmpty()) {
+            throw new JWTDecodeException("Token nulo ou vazio");
         }
+
+        DecodedJWT jwt = JwtDecoder.decode(token);
+        return validateAllClaims(jwt) && hasValidClaimsCount(jwt);
+    }
+
+    private boolean hasValidClaimsCount(DecodedJWT jwt) {
+        int claimsCount = jwt.getClaims().size();
+        int expectedCount = validators.size();
+        
+        if (claimsCount != expectedCount) {
+            log.error("Total de claims invalido: esperado {}, encontrado {}", expectedCount, claimsCount);
+            return false;
+        }
+        
+        log.info("Total de claims valido: {}", claimsCount);
+        return true;
+    }
+
+    private boolean validateAllClaims(DecodedJWT jwt) {
+        log.info("Chamando validadores de claims");
+        
+        for (ClaimValidator validator : validators) {
+            validator.validate(jwt);
+        }
+
+        log.info("JWT passou nas validacoes");
+        return true;
     }
 }

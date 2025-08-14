@@ -1,5 +1,6 @@
-package br.dev.viniciusleonel.backend_challenge.infra.tracing;
+package br.dev.viniciusleonel.backend_challenge.infra.observability.tracing;
 
+import br.dev.viniciusleonel.backend_challenge.infra.observability.tracing.TraceContext;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;

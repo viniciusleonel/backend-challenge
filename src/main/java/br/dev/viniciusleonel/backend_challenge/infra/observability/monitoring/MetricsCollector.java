@@ -1,7 +1,8 @@
-package br.dev.viniciusleonel.backend_challenge.infra.monitoring;
+package br.dev.viniciusleonel.backend_challenge.infra.observability.monitoring;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
@@ -241,7 +242,7 @@ public class MetricsCollector {
     private double calculateAverageResponseTime(ConcurrentLinkedQueue<Long> times) {
         try {
             return times.stream()
-                .filter(time -> time != null)
+                .filter(Objects::nonNull)
                 .mapToLong(Long::longValue)
                 .average()
                 .orElse(0.0);

@@ -1,4 +1,4 @@
-package br.dev.viniciusleonel.backend_challenge.infra.interceptor;
+package br.dev.viniciusleonel.backend_challenge.infra.observability.logging;
 
 import java.util.UUID;
 
@@ -8,8 +8,8 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import br.dev.viniciusleonel.backend_challenge.infra.monitoring.MetricsCollector;
-import br.dev.viniciusleonel.backend_challenge.infra.tracing.TraceContext;
+import br.dev.viniciusleonel.backend_challenge.infra.observability.monitoring.MetricsCollector;
+import br.dev.viniciusleonel.backend_challenge.infra.observability.tracing.TraceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 

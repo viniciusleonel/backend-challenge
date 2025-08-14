@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
 
-import br.dev.viniciusleonel.backend_challenge.infra.monitoring.MetricsCollector;
-import br.dev.viniciusleonel.backend_challenge.infra.tracing.TraceContext;
+import br.dev.viniciusleonel.backend_challenge.infra.observability.monitoring.MetricsCollector;
+import br.dev.viniciusleonel.backend_challenge.infra.observability.tracing.TraceContext;
 
 import java.util.Map;
 

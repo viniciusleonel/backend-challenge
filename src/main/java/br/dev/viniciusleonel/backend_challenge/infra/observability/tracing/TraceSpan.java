@@ -1,4 +1,4 @@
-package br.dev.viniciusleonel.backend_challenge.infra.tracing;
+package br.dev.viniciusleonel.backend_challenge.infra.observability.tracing;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -14,7 +14,6 @@ public class TraceSpan implements AutoCloseable {
     private final String operationName;
     private final Instant startTime;
     private final String spanId;
-    private final String parentSpanId;
     private final Map<String, String> tags;
     private final Map<String, Object> metrics;
     
@@ -22,7 +21,7 @@ public class TraceSpan implements AutoCloseable {
         this.operationName = operationName;
         this.startTime = Instant.now();
         this.spanId = MDC.get(TraceContext.SPAN_ID);
-        this.parentSpanId = MDC.get(TraceContext.PARENT_SPAN_ID);
+        String parentSpanId = MDC.get(TraceContext.PARENT_SPAN_ID);
         this.tags = new HashMap<>();
         this.metrics = new HashMap<>();
         

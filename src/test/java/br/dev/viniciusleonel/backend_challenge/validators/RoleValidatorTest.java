@@ -1,38 +1,40 @@
 package br.dev.viniciusleonel.backend_challenge.validators;
 
-import br.dev.viniciusleonel.backend_challenge.infra.exception.handler.InvalidClaimException;
-import br.dev.viniciusleonel.backend_challenge.utils.JwtGenerator;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.*;
+import br.dev.viniciusleonel.backend_challenge.infra.exception.InvalidClaimException;
+import br.dev.viniciusleonel.backend_challenge.utils.JwtGenerator;
 
-@SpringBootTest
 public class RoleValidatorTest {
 
-    @Test
-    public void testValidRole() {
-        // Gera um token com um 'Role' válido
-        String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", "7841");
-        DecodedJWT jwt = JWT.decode(token);
-        RoleValidator validator = new RoleValidator();
-        assertTrue(validator.validate(jwt)); // Role "Admin" é válido
-    }
+	private final RoleValidator validator = new RoleValidator();
 
-    @Test
-    public void testInvalidRole() {
-        // Gera um token com um role inválido
-        String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Guest", "7841");
-        assertThrows(InvalidClaimException.class, () -> JwtValidator.isValid(token));
-    }
+	@Test
+	public void testValidRole() {
+		// Testa um role valido ("Admin"), espera que o validador aceite o role
+		String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", "7841");
+		DecodedJWT jwt = JWT.decode(token);
+		assertTrue(validator.validate(jwt));
+	}
 
-    @Test
-    public void testNullRole() {
-        // Gera um token com role nulo (simulado ajustando o token não é ideal,
-        // mas para teste, usamos um valor inválido)
-        String token = JwtGenerator.generateJwtToken("Toninho Araujo", null, "7841"); // Pode lançar exceção
-        assertThrows(InvalidClaimException.class, () -> JwtValidator.isValid(token));
-    }
+	@Test
+	public void testInvalidRole() {
+		// Testa um role invalido ("Guest"), espera que o validador lance InvalidClaimException
+		String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Guest", "7841");
+		DecodedJWT jwt = JWT.decode(token);
+		assertThrows(InvalidClaimException.class, () -> validator.validate(jwt));
+	}
+
+	@Test
+	public void testNullRole() {
+		// Testa um role nulo, espera que o validador lance InvalidClaimException
+		String token = JwtGenerator.generateJwtToken("Toninho Araujo", null, "7841");
+		DecodedJWT jwt = JWT.decode(token);
+		assertThrows(InvalidClaimException.class, () -> validator.validate(jwt));
+	}
 }

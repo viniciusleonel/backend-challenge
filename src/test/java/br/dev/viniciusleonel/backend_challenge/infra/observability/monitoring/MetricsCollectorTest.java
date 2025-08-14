@@ -1,6 +1,8 @@
-package br.dev.viniciusleonel.backend_challenge.infra.monitoring;
+package br.dev.viniciusleonel.backend_challenge.infra.observability.monitoring;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import br.dev.viniciusleonel.backend_challenge.infra.observability.monitoring.MetricsCollector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

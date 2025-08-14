@@ -1,4 +1,4 @@
-package br.dev.viniciusleonel.backend_challenge.infra.tracing;
+package br.dev.viniciusleonel.backend_challenge.infra.observability.tracing;
 
 import java.util.UUID;
 

@@ -1,51 +1,52 @@
 package br.dev.viniciusleonel.backend_challenge.validators;
 
-import br.dev.viniciusleonel.backend_challenge.infra.exception.handler.InvalidClaimException;
-import br.dev.viniciusleonel.backend_challenge.utils.JwtGenerator;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
-@SpringBootTest
+import br.dev.viniciusleonel.backend_challenge.infra.exception.InvalidClaimException;
+import br.dev.viniciusleonel.backend_challenge.utils.JwtGenerator;
+
 public class SeedValidatorTest {
 
-    private SeedValidator validator;
-
-    @BeforeEach
-    public void setUp() {
-        validator = new SeedValidator();
-    }
+    private final SeedValidator validator = new SeedValidator();
 
     @Test
     public void testValidPrimeSeed() {
-        // Gera um token com um seed primo (ex.: 7841)
+        // Testa um seed primo valido (7841), espera que o validador aceite o seed
         String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", "7841");
         DecodedJWT jwt = JWT.decode(token);
-        assertTrue(validator.validate(jwt)); // 7841 é primo
+        assertTrue(validator.validate(jwt));
     }
 
     @Test
     public void testNonPrimeSeed() {
-        // Gera um token com um seed não primo (ex.: 4)
+        // Testa um seed nao primo (4), espera que o validador lance InvalidClaimException
         String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", "4");
-        assertThrows(InvalidClaimException.class, () -> JwtValidator.isValid(token));
+        DecodedJWT jwt = JWT.decode(token);
+        assertThrows(InvalidClaimException.class, () -> validator.validate(jwt));
     }
 
     @Test
     public void testNullSeed() {
-        // Simula um token com seed nulo (ajustado manualmente para teste)
-        String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", null);
-        assertThrows(InvalidClaimException.class, () -> JwtValidator.isValid(token));
+        // Testa um token sem o claim Seed, espera que o validador lance InvalidClaimException
+        String token = JWT.create()
+                .withClaim("Name", "Toninho Araujo")
+                .withClaim("Role", "Admin")
+                .sign(Algorithm.HMAC256("your-secret-key")); // sem Seed
+        DecodedJWT jwt = JWT.decode(token);
+        assertThrows(InvalidClaimException.class, () -> validator.validate(jwt));
     }
 
     @Test
     public void testNonNumericSeed() {
-        // Gera um token com um seed não numérico (ex.: "abc")
+        // Testa um seed nao numerico ("abc"), espera que o validador lance InvalidClaimException
         String token = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", "abc");
-        assertThrows(InvalidClaimException.class, () -> JwtValidator.isValid(token));
+        DecodedJWT jwt = JWT.decode(token);
+        assertThrows(InvalidClaimException.class, () -> validator.validate(jwt));
     }
 }

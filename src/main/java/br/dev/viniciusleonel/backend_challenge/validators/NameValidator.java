@@ -1,7 +1,6 @@
 package br.dev.viniciusleonel.backend_challenge.validators;
 
-import br.dev.viniciusleonel.backend_challenge.infra.exception.handler.InvalidClaimException;
-import br.dev.viniciusleonel.backend_challenge.utils.JwtDecoder;
+import br.dev.viniciusleonel.backend_challenge.infra.exception.InvalidClaimException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

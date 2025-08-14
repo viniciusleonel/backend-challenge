@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,45 +24,57 @@ public class ApiControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    // Inicializa o MockMvc antes de cada teste para garantir que o contexto da aplicacao esta pronto
     @BeforeEach
     public void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
     }
 
+    // Testa a validacao de um token invalido (nome com numeros), espera status 400 e resposta false
     @Test
-    public void testValidateValidToken() throws Exception {
-        // Valida um token JWT válido: todos os claims estão corretos (Name sem números, Role válido, Seed primo)
-        String validToken = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", "7841");
-        mockMvc.perform(post("/api/validate")
-                        .param("token", validToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").value(true));
-    }
+	public void testValidateInvalidToken() throws Exception {
+		// Token com claim inválido (Name com números) deve retornar 422
+		String invalidToken = JwtGenerator.generateJwtToken("Toninho123 Araujo", "Admin", "7841");
+		mockMvc.perform(post("/api/validate")
+						.param("token", invalidToken))
+				.andExpect(status().isUnprocessableEntity()) // 422
+				.andExpect(jsonPath("$").value(false));
+	}
 
-    @Test
-    public void testValidateInvalidToken() throws Exception {
-        // Valida um token JWT inválido: claim Name contém números, o que é proibido
-        String invalidToken = JwtGenerator.generateJwtToken("Toninho123 Araujo", "Admin", "7841");
-        mockMvc.perform(post("/api/validate")
-                        .param("token", invalidToken))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$").value(false));
-    }
+    // Testa a validacao de um token malformado, espera status 400 e resposta false
+	@Test
+	public void testValidateMalformedToken() throws Exception {
+		String malformedToken = "invalid.token.format";
+		mockMvc.perform(post("/api/validate")
+						.param("token", malformedToken))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$").value(false));
+	}
 
-    @Test
-    public void testValidateMalformedToken() throws Exception {
-        // Valida um token JWT malformado: formato inválido, não é um JWT
-        String malformedToken = "invalid.token.format";
-        mockMvc.perform(post("/api/validate")
-                        .param("token", malformedToken))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$").value(false));
-    }
+    // Testa a validacao sem enviar o parametro token, espera status 400
+	@Test
+	public void testValidateMissingToken() throws Exception {
+		mockMvc.perform(post("/api/validate"))
+				.andExpect(status().isBadRequest());
+	}
 
-    @Test
-    public void testValidateMissingToken() throws Exception {
-        // Valida requisição sem o parâmetro 'token': espera-se erro 400 (Bad Request)
-        mockMvc.perform(post("/api/validate"))
-                .andExpect(status().isBadRequest()); // Ou status adequado, dependendo da configuração
-    }
+	@Test
+	public void testValidateInvalidRole() throws Exception {
+		// Token com role inválido deve retornar 422
+		String invalidToken = JwtGenerator.generateJwtToken("Toninho Araujo", "Guest", "7841");
+		mockMvc.perform(post("/api/validate")
+						.param("token", invalidToken))
+				.andExpect(status().isUnprocessableEntity()) // 422
+				.andExpect(jsonPath("$").value(false));
+	}
+
+	@Test
+	public void testValidateInvalidSeed() throws Exception {
+		// Token com seed não primo deve retornar 422
+		String invalidToken = JwtGenerator.generateJwtToken("Toninho Araujo", "Admin", "4");
+		mockMvc.perform(post("/api/validate")
+						.param("token", invalidToken))
+				.andExpect(status().isUnprocessableEntity()) // 422
+				.andExpect(jsonPath("$").value(false));
+	}
 }

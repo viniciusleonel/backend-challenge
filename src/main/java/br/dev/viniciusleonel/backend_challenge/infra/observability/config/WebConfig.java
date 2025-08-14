@@ -1,10 +1,10 @@
-package br.dev.viniciusleonel.backend_challenge.infra.config;
+package br.dev.viniciusleonel.backend_challenge.infra.observability.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import br.dev.viniciusleonel.backend_challenge.infra.interceptor.LoggingInterceptor;
+import br.dev.viniciusleonel.backend_challenge.infra.observability.logging.LoggingInterceptor;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
