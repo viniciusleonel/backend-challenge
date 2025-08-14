@@ -1,4 +1,4 @@
-package br.dev.viniciusleonel.backend_challenge.infra.observability.config;
+package br.dev.viniciusleonel.backend_challenge.infra.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
