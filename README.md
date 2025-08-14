@@ -14,23 +14,11 @@ Este é um projeto Spring Boot que implementa um sistema de **validação de JWT
 
 **Decisão tomada**: O JWT é recebido via **query parameter** na URL (`/api/validate?token={{jwt}}`).
 
-## Tecnologias Utilizadas
-
-- **Java 21**
-- **Spring Boot 3.5.4**
-- **Maven 3.9.8+**
-- **Auth0 JWT Library 4.4.0**
-- **JUnit 5** (para testes)
-- **SLF4J + Logback** (para logging)
-- **Swagger** (documentação automática da API)
-- **Docker**
-- **GitHub Actions** (CI/CD)
-
 ## Funcionalidade Principal: Validação de JWT
 
 ### Endpoint Principal
 
-#### GET /api/validate
+### GET /api/validate?token={{token}}
 
 Valida um JWT token recebido via query parameter.
 
@@ -41,20 +29,6 @@ Valida um JWT token recebido via query parameter.
 - **200 OK**: Token válido, retorna `true`
 - **400 Bad Request**: Token malformado ou inválido, retorna `false`
 - **422 Unprocessable Entity**: Claims inválidos, retorna `false`
-
-**Exemplo de uso:**
-```bash
-GET /api/validate?token={{token}}
-```
-
-**Exemplos de resposta:**
-```json
-// Token válido
-true
-
-// Token inválido
-false
-```
 
 ### Claims Validados
 
@@ -74,8 +48,9 @@ false
 
 ### Exemplo de JWT Válido
 
-Para testar a API, você pode usar um JWT com a seguinte estrutura:
-
+```
+eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJTZWVkIjoiNzg0MSIsIk5hbWUiOiJUb25pbmhvIEFyYXVqbyJ9.QY05sIjtrcJnP533kQNk8QXcaleJ1Q01jWY_ZzIZuAg
+```
 ```json
 {
   "Role": "Admin",
@@ -83,12 +58,85 @@ Para testar a API, você pode usar um JWT com a seguinte estrutura:
   "Name": "Toninho Araujo"
 }
 ```
+### Resposta (Status 200)
+```json
+true
+```
+
 
 **Observações:**
 - O nome não pode conter números
 - O role deve ser "Admin", "Member" ou "External"
 - O seed deve ser um número primo
 - O token deve conter exatamente 3 claims
+
+### Exemplo de JWT Inválido
+
+### Caso 1 - JWT com formato inválido:
+```
+eyJhbGciOiJzI1NiJ9.dfsdfsfryJSr2xrIjoiQWRtaW4iLCJTZrkIjoiNzg0MSIsIk5hbrUiOiJUb25pbmhvIEFyYXVqbyJ9.QY05fsdfsIjtrcJnP533kQNk8QXcaleJ1Q01jWY_ZzIZuAg
+```
+```json
+
+```
+### Resposta (Status 400)
+```json
+false
+```
+
+### Caso 2 - Claim `Name` com número:
+```
+eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiRXh0ZXJuYWwiLCJTZWVkIjoiODgwMzciLCJOYW1lIjoiTTRyaWEgT2xpdmlhIn0.6YD73XWZYQSSMDf6H0i3-kylz1-TY_Yt6h1cV2Ku-Qs
+```
+
+```json
+{
+  "Role": "External",
+  "Seed": "72341",
+  "Name": "M4ria Olivia"
+}
+```
+
+### Resposta (Status 422)
+```json
+false
+```
+
+### Caso 3 - Mais de 3 Claims válidas:
+```
+eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiTWVtYmVyIiwiT3JnIjoiQlIiLCJTZWVkIjoiMTQ2MjciLCJOYW1lIjoiVmFsZGlyIEFyYW5oYSJ9.cmrXV_Flm5mfdpfNUVopY_I2zeJUy4EZ4i3Fea98zvY
+```
+```json
+{
+  "Role": "Member",
+  "Org": "BR",
+  "Seed": "14627",
+  "Name": "Valdir Aranha"
+}
+```
+### Resposta (Status 400)
+```json
+false
+```
+
+### Caso 4 - Claim `Seed` não contém um número primo:
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJOYW1lIjoiVG9uaW5obyBBcmF1am8iLCJSb2xlIjoiQWRtaW4iLCJTZWVkIjoiNCJ9.0B_WTINUHoRiHQqwcQJncELG4m85I2n7iQ35ENHuvA8
+```
+```json
+{
+  "Role": "Admin",
+  "Seed": "4",
+  "Name": "Toninho Araujo"
+}
+```
+### Resposta (Status 422)
+```json
+false
+```
+
+> **Nota:** A geração de tokens JWT para testes agora está disponível na classe `GenerateJwtToken`. Com ela, é possível criar tokens contendo diferentes combinações de claims, permitindo simular diversos cenários durante o desenvolvimento e validação da aplicação.  
+> Para utilizá-la, basta alterar os valores das claims diretamente na classe `GenerateJwtToken` e executar o método `main`. Por exemplo, modifique os campos desejados no método `main` e rode a aplicação. O token gerado será exibido no console, pronto para ser utilizado nos testes.
 
 ## Arquitetura
 
@@ -177,6 +225,44 @@ A aplicação possui um sistema robusto de tratamento de exceções:
 3. **Claims Ausentes**: Número incorreto de claims (deve ser exatamente 3)
 4. **Erros de Observabilidade**: Falhas na coleta de métricas e tracing
 
+## Tecnologias Utilizadas
+
+- **Java 21**
+- **Spring Boot 3.5.4**
+- **Maven 3.9.8+**
+- **Auth0 JWT Library 4.4.0**
+- **JUnit 5** (para testes)
+- **SLF4J + Logback** (para logging)
+- **Swagger** (documentação automática da API)
+- **Docker**
+- **GitHub Actions** (CI/CD)
+
+## Documentação Interativa com Swagger
+
+A API possui documentação interativa gerada automaticamente com **Swagger** (OpenAPI 3), facilitando a exploração e o teste dos endpoints diretamente pelo navegador.
+
+- **Acesse a documentação Swagger UI:**  
+  [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)  
+  ou  
+  [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+
+> **Dica:** O Swagger permite enviar requisições reais para os endpoints, visualizar exemplos de payloads, respostas, códigos de status e detalhes das validações.
+
+A especificação OpenAPI também pode ser acessada em:  
+[http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+**Principais vantagens do Swagger:**
+- Visualização clara dos endpoints disponíveis
+- Testes rápidos sem necessidade de ferramentas externas (ex: Postman)
+- Exemplos de requisições e respostas
+- Detalhamento dos parâmetros e possíveis códigos de resposta
+
+A configuração do Swagger já está pronta no projeto, basta rodar a aplicação e acessar os links acima.
+
+> **Coleção Postman:**  
+Um arquivo de coleção do Postman está disponível em `src/postman`. Você pode importar esse arquivo no Postman para testar rapidamente todos os endpoints da API, com exemplos de requisições e respostas já configurados.
+
+
 ## Como Executar
 
 ### Pré-requisitos
@@ -189,17 +275,20 @@ A aplicação possui um sistema robusto de tratamento de exceções:
 
 1. **Clone o repositório:**
 ```bash
+
 git clone https://github.com/viniciusleonel/backend-challenge
 cd backend-challenge
 ```
 
 2. **Compile o projeto:**
 ```bash
+
 mvn clean compile
 ```
 
 3. **Execute a aplicação:**
 ```bash
+
 mvn spring-boot:run
 ```
 
@@ -209,11 +298,13 @@ A aplicação estará disponível em `http://localhost:8080`
 
 1. **Construa a imagem:**
 ```bash
+
 docker build -t backend-challenge .
 ```
 
 2. **Execute o container:**
 ```bash
+
 docker run --name backend-challenge -p 8080:8080 backend-challenge
 ```
 
@@ -222,6 +313,7 @@ docker run --name backend-challenge -p 8080:8080 backend-challenge
 Execute os testes unitários:
 
 ```bash
+
 mvn test
 ```
 
