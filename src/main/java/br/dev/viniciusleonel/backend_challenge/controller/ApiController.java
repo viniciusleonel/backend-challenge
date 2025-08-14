@@ -1,10 +1,7 @@
 package br.dev.viniciusleonel.backend_challenge.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import br.dev.viniciusleonel.backend_challenge.infra.observability.monitoring.MetricsCollector;
 import br.dev.viniciusleonel.backend_challenge.infra.observability.tracing.TraceSpan;
@@ -22,7 +19,7 @@ public class ApiController {
         this.jwtValidator = jwtValidator;
     }
 
-    @PostMapping("/validate")
+    @GetMapping("/validate")
     public ResponseEntity<Boolean> validateJwt(@RequestParam String token) {
         try (TraceSpan span = new TraceSpan("validateJwt")) {
             span.addTag("tokenLength", String.valueOf(token.length()));
