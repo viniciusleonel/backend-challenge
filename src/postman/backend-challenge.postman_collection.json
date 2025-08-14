@@ -1,0 +1,163 @@
+{
+	"info": {
+		"_postman_id": "a77c204b-e3fb-46fa-b69c-d32706218902",
+		"name": "backend-challenge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26153250"
+	},
+	"item": [
+		{
+			"name": "Monitoring",
+			"item": [
+				{
+					"name": "monitoring/metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/monitoring/metrics",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"monitoring",
+								"metrics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "monitoring/metrics/reset",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/monitoring/metrics/reset",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"monitoring",
+								"metrics",
+								"reset"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "monitoring/tracing/current",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/monitoring/tracing/current",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"monitoring",
+								"tracing",
+								"current"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "monitoring/tracing/endpoints",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/monitoring/tracing/endpoints",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"monitoring",
+								"tracing",
+								"endpoints"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "monitoring/health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/monitoring/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"monitoring",
+								"health"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "#### GET /monitoring/metrics\n\n**Métricas Completas em Tempo Real**\n\n**Descrição:**  \nRetorna todas as métricas coletadas pela aplicação em tempo real, incluindo contadores de requisições, performance por endpoint, estatísticas de JWT, erros de claims e contexto de tracing atual.\n\n**Método:** GET  \n**URL:** {{base_url}}/monitoring/metrics\n\n**Resposta:**  \n• Contadores de requisições (total, sucesso, falha)  \n• Métricas de performance por endpoint  \n• Estatísticas de validação de JWT  \n• Erros de validação de claims categorizados  \n• Performance metrics (tempo médio, min, max)  \n• Contexto de tracing atual (traceId, spanId, operação)\n\n**Uso:**  \n• Monitoramento contínuo de performance  \n• Análise de tendências de uso  \n• Identificação de gargalos  \n• Alertas baseados em métricas\n\n#### GET /monitoring/health\n\n**Health Check com Contexto de Tracing**\n\n**Descrição:**  \nVerifica a saúde da aplicação incluindo métricas de performance e contexto de tracing. Fornece status de disponibilidade com informações detalhadas sobre o estado atual do sistema.\n\n**Método:** GET  \n**URL:** {{base_url}}/monitoring/health\n\n**Resposta:**  \n• Status da aplicação (UP/DOWN)  \n• Timestamp da verificação  \n• TraceID atual (se disponível)  \n• SpanID atual (se disponível)  \n• Total de requisições processadas  \n• Taxa de sucesso geral  \n• Tempo médio de resposta\n\n**Uso:**  \n• Health checks de load balancers  \n• Monitoramento de disponibilidade  \n• Verificação de status em produção  \n• Integração com sistemas de alerta\n\n#### GET /monitoring/tracing/current\n\n**Contexto de Tracing Atual**\n\n**Descrição:**  \nRetorna informações sobre o trace e span atualmente em execução, fornecendo visibilidade sobre a operação sendo processada no momento da requisição.\n\n**Método:** GET  \n**URL:** {{base_url}}/monitoring/tracing/current\n\n**Resposta:**  \n• TraceID atual  \n• SpanID atual  \n• Nome da operação em execução  \n• RequestID da requisição  \n• Endpoint sendo processado  \n• Timestamp da operação\n\n**Uso:**  \n• Debugging de requisições específicas  \n• Análise de fluxo de execução  \n• Correlação de logs e traces  \n• Troubleshooting de problemas\n\n#### GET /monitoring/tracing/endpoints\n\n**Estatísticas de Traces por Endpoint**\n\n**Descrição:**  \nRetorna estatísticas de traces organizadas por endpoint, fornecendo insights sobre performance, taxa de erro e padrões de uso de cada rota da aplicação.\n\n**Método:** GET  \n**URL:** {{base_url}}/monitoring/tracing/endpoints\n\n**Resposta:**  \n• Estatísticas por endpoint  \n• Total de traces processados  \n• Duração média dos traces  \n• Taxa de erro por endpoint  \n• Timestamp do último trace  \n• Contexto de tracing atual\n\n**Uso:**  \n• Análise de performance por rota  \n• Identificação de endpoints problemáticos  \n• Otimização de recursos  \n• Capacity planning\n\n#### POST /monitoring/metrics/reset  \n**Reset de Métricas Coletadas**\n\n**Descrição:**  \nReseta todas as métricas coletadas pela aplicação, útil para testes, desenvolvimento e limpeza de dados históricos. Reinicia contadores e estatísticas de performance.\n\n**Método:** POST  \n**URL:** {{base_url}}/monitoring/metrics/reset\n\n**Resposta:**  \n• Confirmação de reset  \n• Timestamp da operação  \n• TraceID da operação de reset  \n• Mensagem de sucesso\n\n**Uso:**  \n• Limpeza de métricas em desenvolvimento  \n• Reset para testes de performance  \n• Limpeza de dados históricos  \n• Preparação para novos testes"
+		},
+		{
+			"name": "Validate JWT",
+			"item": [
+				{
+					"name": "api/validate",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/validate?token={{token}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"validate"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "**POST /api/validate**\n\n**Descrição:**  \nEndpoint principal para validação de JWT tokens com claims personalizadas. Valida a estrutura do token, quantidade de claims e aplica validadores específicos para cada claim (Name, Role, Seed).\n\n**Método:** POST  \n**URL:** {{base_url}}/api/validate?token={{jwt_token}}\n\n**Parâmetros:**  \n• token (query parameter): JWT token a ser validado\n\n**Respostas:**  \n• 200 OK: Token válido → retorna \"true\"  \n• 400 Bad Request: Token malformado → retorna \"false\"  \n• 422 Unprocessable Entity: Claims inválidas → retorna \"false\"\n\n**Validações Aplicadas:**\n\n1. Estrutura JWT válida\n    \n2. Exatamente 3 claims presentes\n    \n3. Name: máximo 256 chars, sem números\n    \n4. Role: Admin, Member ou External\n    \n5. Seed: número primo válido\n    \n\n**Exemplo de Uso:**  \nPOST /api/validate?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n**Contexto de Observabilidade:**  \n• RequestID único para rastreamento  \n• TraceID para distributed tracing  \n• SpanID para operações específicas  \n• Métricas de performance automáticas  \n• Logs estruturados com MDC"
+		}
+	]
+}
