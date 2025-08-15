@@ -1,18 +1,16 @@
 # Backend Challenge
 
+---
+
 ## Descrição
 
 Este é um projeto Spring Boot que implementa um sistema de **validação de JWT (JSON Web Tokens)** com validações específicas para claims personalizados. A **função principal da API é validar tokens JWT** e retornar um boolean indicando se são válidos ou não.
 
-### Premissas Assumidas
-
-**Importante**: Conforme especificado no desafio, o JWT é recebido "por parâmetros" e retorna um boolean. Considerando que:
+**Importante**: Conforme especificado no desafio, o JWT é recebido por parâmetros e retorna um boolean. Considerando que:
 
 1. **Input**: JWT como string via parâmetros
 2. **Output**: Boolean indicando validade (true/false)
 3. **Simplicidade**: Resposta direta sem complexidade adicional
-
-**Decisão tomada**: O JWT é recebido via **query parameter** na URL (`/api/validate?token={{jwt}}`).
 
 ## Funcionalidade Principal: Validação de JWT
 
@@ -138,6 +136,8 @@ false
 > **Nota:** A geração de tokens JWT para testes agora está disponível na classe `GenerateJwtToken`. Com ela, é possível criar tokens contendo diferentes combinações de claims, permitindo simular diversos cenários durante o desenvolvimento e validação da aplicação.  
 > Para utilizá-la, basta alterar os valores das claims diretamente na classe `GenerateJwtToken` e executar o método `main`. Por exemplo, modifique os campos desejados no método `main` e rode a aplicação. O token gerado será exibido no console, pronto para ser utilizado nos testes.
 
+---
+
 ## Arquitetura
 
 ### Princípios SOLID
@@ -197,9 +197,9 @@ src/main/java/br/dev/viniciusleonel/backend_challenge/
 └── BackendChallengeApplication.java
 ```
 
-## Tratamento de Exceções
+---
 
-A aplicação possui um sistema robusto de tratamento de exceções:
+## Tratamento de Exceções
 
 ### Exceções Personalizadas
 
@@ -215,8 +215,15 @@ A aplicação possui um sistema robusto de tratamento de exceções:
 
 ### GlobalExceptionHandler
 
+O `GlobalExceptionHandler` agora trata as seguintes exceções:
+
 - **InvalidClaimException**: Retorna status 422 (Unprocessable Entity) para claims inválidos
 - **JWTDecodeException**: Retorna status 400 (Bad Request) para tokens malformados
+- **CollectCurrentTraceException**: Retorna status 500 (Internal Server Error) para falhas ao coletar o trace atual
+- **CollectEndpointTraceException**: Retorna status 500 (Internal Server Error) para falhas ao coletar traces por endpoint
+- **CollectMetricsException**: Retorna status 500 (Internal Server Error) para falhas ao coletar métricas
+- **ResetMetricsException**: Retorna status 500 (Internal Server Error) para falhas ao resetar métricas
+- **HealthCheckException**: Retorna status 500 (Internal Server Error) para falhas no health check
 
 ### Tipos de Erro
 
@@ -224,6 +231,8 @@ A aplicação possui um sistema robusto de tratamento de exceções:
 2. **Token Malformado**: Formato JWT inválido
 3. **Claims Ausentes**: Número incorreto de claims (deve ser exatamente 3)
 4. **Erros de Observabilidade**: Falhas na coleta de métricas e tracing
+
+---
 
 ## Tecnologias Utilizadas
 
@@ -236,6 +245,8 @@ A aplicação possui um sistema robusto de tratamento de exceções:
 - **Swagger** (documentação automática da API)
 - **Docker**
 - **GitHub Actions** (CI/CD)
+
+---
 
 ## Documentação Interativa com Swagger
 
@@ -262,6 +273,7 @@ A configuração do Swagger já está pronta no projeto, basta rodar a aplicaç�
 > **Coleção Postman:**  
 Um arquivo de coleção do Postman está disponível em `src/postman`. Você pode importar esse arquivo no Postman para testar rapidamente todos os endpoints da API, com exemplos de requisições e respostas já configurados.
 
+---
 
 ## Como Executar
 
@@ -307,6 +319,8 @@ docker build -t backend-challenge .
 
 docker run --name backend-challenge -p 8080:8080 backend-challenge
 ```
+
+---
 
 ## Testes
 
@@ -357,6 +371,8 @@ src/test/java/br/dev/viniciusleonel/backend_challenge/
     └── MonitoringControllerTest.java
 ```
 
+---
+
 ## CI/CD
 
 O projeto utiliza GitHub Actions para automatizar o processo de integração e entrega contínua.
@@ -392,6 +408,8 @@ O workflow `cd.yml` é executado automaticamente após o sucesso do CI e:
 - `DOCKERHUB_USERNAME` - Nome de usuário do Docker Hub
 - `DOCKERHUB_TOKEN` - Token de acesso do Docker Hub
 
+---
+
 ## Configuração
 
 As configurações da aplicação estão em `src/main/resources/application.properties`:
@@ -408,52 +426,6 @@ logging.level.br.dev.viniciusleonel.backend_challenge=DEBUG
 # Formato de saída dos logs com MDC, Tracing e Monitoring
 logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{requestId}] [%X{endpoint}] [%X{traceId}] [%X{spanId}] [%X{operationName}] [%X{duration}ms] - %msg%n
 ```
-
-## Utilitários
-
-### JwtGenerator
-
-Classe utilitária para gerar tokens JWT de teste:
-```java
-String token = JwtGenerator.generateJwtToken("Nome", "Admin", "7841");
-```
-
-### NumberUtils
-
-Utilitário para validação de números primos:
-```java
-boolean isPrime = NumberUtils.isPrime(7841); // true
-```
-
-## Decisões de Implementação
-
-### JWT via Query Parameter
-
-**Decisão**: O JWT é recebido via query parameter (`?token={{jwt}}`) em vez de header de autorização, body ou path parameter.
-
-**Justificativa**:
-- **Conformidade com o Enunciado**: O desafio especifica "por parâmetros" sem mencionar body, bearer authorization ou headers
-- **Clareza da Especificação**: Não há ambiguidade sobre usar body (POST) ou bearer authorization
-- **Simplicidade**: Adequado para o output booleano simples
-- **Testabilidade**: Facilita testes diretos via navegador ou ferramentas simples
-- **Flexibilidade**: Não requer configuração de headers de autorização
-- **Validação Rápida**: Permite verificação direta de tokens sem setup adicional
-
-**Alternativas Consideradas e Rejeitadas**:
-- **Header Authorization (Bearer)**: Mais padrão para JWT, mas **não foi especificado no desafio**
-- **Body POST**: Adequado para dados complexos, mas **não foi mencionado no enunciado**
-- **Path Parameter**: Menos flexível e mais restritivo
-- **Query Parameter**: **Única opção mencionada no desafio** ("por parâmetros")**
-
-### Output Boolean
-
-**Decisão**: Retorno direto como boolean (true/false) em vez de objeto JSON estruturado.
-
-**Justificativa**:
-- **Simplicidade**: Resposta direta e clara
-- **Conformidade**: O desafio especifica "boolean indicando se é válido"
-- **Eficiência**: Menos overhead de serialização/deserialização
-- **Clareza**: Resposta imediata sem necessidade de parsing
 
 ## Contribuição
 
@@ -484,82 +456,11 @@ Para adicionar novas exceções:
 3. Implemente os testes correspondentes
 4. Atualize a documentação
 
-### Estrutura de um Validador
-
-```java
-public class CustomValidator implements ClaimValidator {
-    @Override
-    public boolean validate(DecodedJWT jwt) {
-        // Lógica de validação
-        // Lance InvalidClaimException para erros
-        return true;
-    }
-}
-```
-
-### Estrutura de uma Nova Métrica
-
-```java
-// Em MetricsCollector
-public void recordCustomMetric(String metricName, Object value) {
-    // Implementação da coleta
-}
-
-// Em MonitoringController
-@GetMapping("/custom-metric")
-public ResponseEntity<Object> getCustomMetric() {
-    // Implementação do endpoint
-}
-```
-
-### Estrutura de uma Nova Exceção
-
-```java
-public class CustomException extends RuntimeException {
-    public CustomException(String message) {
-        super(message);
-    }
-}
-```
-
-## Roadmap de Evolução
-
-### **Fase 1: Implementação Básica** ✅
-- ✅ Validação de JWT com claims personalizados
-- ✅ Arquitetura SOLID com validadores extensíveis
-- ✅ Tratamento robusto de exceções
-- ✅ Logging estruturado com MDC
-- ✅ Sistema de tracing básico com spans
-- ✅ Métricas de performance básicas
-- ✅ Endpoints de monitoring
-- ✅ Pipelines CI/CD com GitHub Actions
-
-### **Fase 2: Observabilidade Avançada** ✅
-- ✅ Tracing distribuído completo com hierarquia de spans
-- ✅ Sistema de monitoring em tempo real com métricas thread-safe
-- ✅ Métricas detalhadas de performance e negócio
-- ✅ Configuração automática de observabilidade
-- ✅ Logging aprimorado com contexto completo
-- ✅ Exceções personalizadas para diferentes tipos de erro
-- ✅ Health checks com contexto de tracing
-- ✅ Sistema de métricas com agregação automática
-
-### **Fase 3: Integração Externa** 🔄
-- 🔄 Integração com Jaeger para visualização de traces
-- 🔄 Dashboards Grafana para métricas
-- 🔄 Alertas automáticos baseados em métricas
-- 🔄 Métricas customizadas para negócio
-
-### **Fase 4: Observabilidade de Produção** 📋
-- 📋 OpenTelemetry para padrão aberto
-- 📋 Distributed tracing entre serviços
-- 📋 Service mesh integration
-- 📋 AI-powered anomaly detection
-- 📋 SLA/SLO monitoring
+---
 
 ## Observabilidade
 
-A aplicação implementa um sistema completo de observabilidade que vai além do logging básico, fornecendo insights profundos sobre o comportamento e performance do sistema.
+A aplicação implementa um sistema completo de observabilidade com logging, tracing e monitoring, fornecendo insights profundos sobre o comportamento e performance do sistema.
 
 ### Componentes de Observabilidade
 
@@ -702,41 +603,34 @@ Retorna métricas detalhadas em tempo real da aplicação, incluindo:
 **Exemplo de resposta:**
 ```json
 {
-  "endpointMetrics": {
-    "/monitoring/metrics:GET": {
-      "minResponseTime": 8,
-      "maxResponseTime": 8,
-      "avgResponseTime": 8.0,
-      "requests": 3,
-      "errors": 0
+    "endpointMetrics": {
+        "/api/validate:GET": {
+            "minResponseTime": 2,
+            "maxResponseTime": 2,
+            "avgResponseTime": 2.0,
+            "requests": 2,
+            "errors": 0
+        }
     },
-    "/api/validate:GET": {
-      "minResponseTime": 3,
-      "maxResponseTime": 6,
-      "avgResponseTime": 3.75,
-      "requests": 8,
-      "errors": 2
-    }
-  },
-  "successRate": 27.27272727272727,
-  "totalJwtValidations": 4,
-  "validJwts": 2,
-  "claimValidationErrors": {},
-  "performanceMetrics": {
-    "totalResponses": 5,
-    "minResponseTime": 3,
-    "maxResponseTime": 8,
-    "avgResponseTime": 4.6
-  },
-  "invalidJwts": 2,
-  "currentSpanId": "9a90d774",
-  "jwtValidationRate": 50.0,
-  "totalRequests": 11,
-  "successfulRequests": 3,
-  "currentOperation": "root",
-  "currentTraceId": "ea38a881d26341e0",
-  "failedRequests": 2,
-  "timestamp": "2025-08-14T21:17:57.639503400Z"
+    "successRate": 50.0,
+    "totalJwtValidations": 1,
+    "validJwts": 1,
+    "claimValidationErrors": {},
+    "performanceMetrics": {
+        "totalResponses": 3,
+        "minResponseTime": 2,
+        "maxResponseTime": 2,
+        "avgResponseTime": 2.0
+    },
+    "invalidJwts": 0,
+    "currentSpanId": "0c93a92c",
+    "jwtValidationRate": 100.0,
+    "totalRequests": 6,
+    "successfulRequests": 3,
+    "currentOperation": "root",
+    "currentTraceId": "c83c43a942da48ec",
+    "failedRequests": 0,
+    "timestamp": "2025-08-14T22:37:47.732610800Z"
 }
 ```
 
@@ -901,15 +795,28 @@ O `LoggingInterceptor` é responsável por:
 #### Exemplo de Saída de Logs com MDC, Tracing e Monitoring
 
 ```
-2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.c.ApiController [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span001] [validateJwt] [45ms] - Endpoint /api/validate chamado
-2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span002] [JwtValidation] [23ms] - Iniciando validacao do JWT
-2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.u.JwtDecoder [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span003] [JwtDecode] [8ms] - Iniciando decodificacao do JWT
-2024-01-15 16:50:23 [http-nio-8080-exec-1] DEBUG b.d.v.b.u.JwtDecoder [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span003] [JwtDecode] [8ms] - JWT decodificado com sucesso
-2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.v.NameValidator [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span004] [Validator_NameValidator] [5ms] - Nome valido: Toninho Araujo
-2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.v.RoleValidator [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span005] [Validator_RoleValidator] [3ms] - Role valido: Admin
-2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.v.SeedValidator [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span006] [Validator_SeedValidator] [7ms] - Seed valido: 7841
-2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.v.JwtValidator [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span002] [JwtValidation] [23ms] - JWT passou nas validacoes
-2024-01-15 16:50:23 [http-nio-8080-exec-1] INFO  c.d.v.b.c.ApiController [abc123-def456] [/api/validate] [a1b2c3d4e5f6g7h8] [span001] [validateJwt] [45ms] - JWT valido
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.i.o.tracing.TraceContext [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [42da1a61] [root] [ms] - Trace iniciado: traceId=480c8f6e38474f35, spanId=42da1a61
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.i.o.tracing.TraceContext [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [42da1a61] [root] [ms] - getCurrentTraceId() retornou: 480c8f6e38474f35
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.i.o.l.LoggingInterceptor [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [42da1a61] [root] [ms] - Tracing iniciado para: GET /api/validate [requestId: 82459d58-a8cd-429c-9970-945efe7136a7, traceId: 480c8f6e38474f35]
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.i.o.tracing.TraceContext [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Span iniciado: operationName=validateJwt, spanId=e34462fc, parentSpanId=42da1a61
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.i.o.tracing.TraceSpan [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Span iniciado: validateJwt [spanId: 42da1a61, parentSpanId: ]
+2025-08-14 21:06:19 [http-nio-8080-exec-3] INFO  b.d.v.b.validators.JwtValidator [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Iniciando validacao do JWT
+2025-08-14 21:06:19 [http-nio-8080-exec-3] INFO  b.d.v.b.utils.JwtDecoder [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Iniciando decodificacao do JWT
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.utils.JwtDecoder [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - JWT decodificado com sucesso
+2025-08-14 21:06:19 [http-nio-8080-exec-3] INFO  b.d.v.b.validators.JwtValidator [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Chamando validadores de claims
+2025-08-14 21:06:19 [http-nio-8080-exec-3] INFO  b.d.v.b.validators.NameValidator [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Iniciando validacao da claim Name
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.validators.NameValidator [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Nome valido: Toninho Araujo
+2025-08-14 21:06:19 [http-nio-8080-exec-3] INFO  b.d.v.b.validators.RoleValidator [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Iniciando validacao da claim Role
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.validators.RoleValidator [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Role valida: Admin
+2025-08-14 21:06:19 [http-nio-8080-exec-3] INFO  b.d.v.b.validators.SeedValidator [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Iniciando validacao da claim Seed
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.validators.SeedValidator [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Seed valida: 7841
+2025-08-14 21:06:19 [http-nio-8080-exec-3] INFO  b.d.v.b.validators.JwtValidator [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - JWT passou nas validacoes
+2025-08-14 21:06:19 [http-nio-8080-exec-3] INFO  b.d.v.b.validators.JwtValidator [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [e34462fc] [validateJwt] [ms] - Total de claims valido: 3
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.i.o.tracing.TraceContext [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [42da1a61] [parent] [ms] - Span finalizado, voltando para parent: spanId=42da1a61
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.i.o.tracing.TraceSpan [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [42da1a61] [parent] [ms] - Span finalizado: validateJwt [duracao: 36ms, spanId: 42da1a61, tags: {tokenLength=137, business.operation=jwt_validation}, metrics: {duration=36, startTime=1755216379134, endTime=1755216379170}]
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.i.o.tracing.TraceContext [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [42da1a61] [parent] [81ms] - getCurrentTraceId() retornou: 480c8f6e38474f35
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.i.o.l.LoggingInterceptor [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [42da1a61] [parent] [81ms] - Finalizando tracing para: GET /api/validate [traceId: 480c8f6e38474f35, duracao: 81ms]
+2025-08-14 21:06:19 [http-nio-8080-exec-3] DEBUG b.d.v.b.i.o.tracing.TraceContext [82459d58-a8cd-429c-9970-945efe7136a7] [/api/validate] [480c8f6e38474f35] [42da1a61] [parent] [81ms] - Trace finalizado: traceId=480c8f6e38474f35
 ```
 
 #### Benefícios do Sistema de Logging e Observabilidade
@@ -940,37 +847,6 @@ O `LoggingInterceptor` é responsável por:
 9. **Análise de Negócio**: Métricas específicas para análise de comportamento do usuário
 10. **Monitoramento de Saúde**: Health checks proativos com contexto completo
 
-### Estrutura de Arquivos de Observabilidade
-
-```
-src/main/java/br/dev/viniciusleonel/backend_challenge/
-├── infra/
-│   ├── config/              # Configurações da aplicação
-│   │   ├── WebConfig.java   # Configuração do interceptor
-│   │   └── ObservabilityConfig.java # Configuração de observabilidade
-│   ├── exception/            # Tratamento de exceções
-│   │   ├── handler/         # Handlers globais de exceção
-│   │   │   └── GlobalExceptionHandler.java
-│   │   ├── CollectCurrentTraceException.java
-│   │   ├── CollectEndpointTraceException.java
-│   │   ├── CollectMetricsException.java
-│   │   ├── HealthCheckException.java
-│   │   ├── InvalidClaimException.java
-│   │   └── ResetMetricsException.java
-│   ├── interceptor/         # Interceptadores de requisição
-│   │   └── LoggingInterceptor.java
-│   ├── tracing/             # Sistema de tracing
-│   │   ├── TraceContext.java # Contexto de tracing
-│   │   ├── TraceMetrics.java # Métricas de tracing
-│   │   └── TraceSpan.java   # Implementação de spans
-│   └── monitoring/          # Sistema de monitoring
-│       ├── MetricsCollector.java # Coletor de métricas
-│       └── MonitorHealth.java # Health checks
-├── controller/
-│   ├── ApiController.java   # Controller principal
-│   └── MonitoringController.java # Controller de monitoring
-```
-
 ### Configuração Automática
 
 O sistema de observabilidade é configurado automaticamente através de:
@@ -982,19 +858,6 @@ O sistema de observabilidade é configurado automaticamente através de:
 - **Tracing**: Geração automática de traces e spans
 - **Monitoring**: Coleta automática de métricas
 - **Health Checks**: Verificação automática de saúde da aplicação
-
-### Integração com Ferramentas de Monitoramento
-
-O sistema está preparado para integração com:
-
-- **ELK Stack** (Elasticsearch, Logstash, Kibana)
-- **Prometheus + Grafana**
-- **Splunk**
-- **Datadog**
-- **New Relic**
-- **Jaeger** (Distributed Tracing)
-- **Zipkin** (Tracing)
-- **OpenTelemetry** (Padrão aberto)
 
 ### Métricas Disponíveis
 
@@ -1010,6 +873,8 @@ Através dos logs estruturados e endpoints de monitoring, é possível extrair:
 - **Health metrics** em tempo real
 - **Business metrics** para análise de comportamento
 
-## Licença
+## Criado por:
 
-Este projeto é um desafio de desenvolvimento e não possui licença específica definida.
+### Vinicius Leonel
+
+### Linkedin: https://www.linkedin.com/in/viniciuslps

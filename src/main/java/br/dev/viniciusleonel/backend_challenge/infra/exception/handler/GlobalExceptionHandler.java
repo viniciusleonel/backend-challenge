@@ -1,15 +1,22 @@
 package br.dev.viniciusleonel.backend_challenge.infra.exception.handler;
 
-import br.dev.viniciusleonel.backend_challenge.infra.exception.*;
-import com.auth0.jwt.exceptions.JWTDecodeException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.auth0.jwt.exceptions.JWTDecodeException;
+
+import br.dev.viniciusleonel.backend_challenge.infra.exception.CollectCurrentTraceException;
+import br.dev.viniciusleonel.backend_challenge.infra.exception.CollectEndpointTraceException;
+import br.dev.viniciusleonel.backend_challenge.infra.exception.CollectMetricsException;
+import br.dev.viniciusleonel.backend_challenge.infra.exception.HealthCheckException;
+import br.dev.viniciusleonel.backend_challenge.infra.exception.InvalidClaimException;
+import br.dev.viniciusleonel.backend_challenge.infra.exception.ResetMetricsException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

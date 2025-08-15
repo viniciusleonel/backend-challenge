@@ -3,13 +3,36 @@ package br.dev.viniciusleonel.backend_challenge.utils;
 public final class ApiExamples {
 
     public static final String METRICS_EXAMPLE = """
-        {
-          "totalValidations": 150,
-          "successfulValidations": 142,
-          "failedValidations": 8,
-          "successRate": "94.67%",
-          "timestamp": "2024-01-15T10:30:00Z"
-        }
+            {
+                "endpointMetrics": {
+                    "/api/validate:GET": {
+                        "minResponseTime": 2,
+                        "maxResponseTime": 2,
+                        "avgResponseTime": 2.0,
+                        "requests": 2,
+                        "errors": 0
+                    }
+                },
+                "successRate": 50.0,
+                "totalJwtValidations": 1,
+                "validJwts": 1,
+                "claimValidationErrors": {},
+                "performanceMetrics": {
+                    "totalResponses": 3,
+                    "minResponseTime": 2,
+                    "maxResponseTime": 2,
+                    "avgResponseTime": 2.0
+                },
+                "invalidJwts": 0,
+                "currentSpanId": "0c93a92c",
+                "jwtValidationRate": 100.0,
+                "totalRequests": 6,
+                "successfulRequests": 3,
+                "currentOperation": "root",
+                "currentTraceId": "c83c43a942da48ec",
+                "failedRequests": 0,
+                "timestamp": "2025-08-14T22:37:47.732610800Z"
+            }
         """;
 
     public static final String HEALTH_EXAMPLE = """

@@ -2,7 +2,7 @@ package br.dev.viniciusleonel.backend_challenge.controller;
 
 import java.util.Map;
 
-import br.dev.viniciusleonel.backend_challenge.constants.ApiExamples;
+import br.dev.viniciusleonel.backend_challenge.utils.ApiExamples;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
