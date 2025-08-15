@@ -138,6 +138,27 @@ false
 
 ---
 
+## Validadores de Claims JWT
+
+O sistema de validação de JWT foi projetado para ser modular e extensível, utilizando uma arquitetura baseada em interfaces e implementações específicas para cada tipo de claim. A seguir, estão descritos os principais validadores utilizados:
+
+- **JwtValidator**: Classe principal responsável por orquestrar a validação do token JWT. Ela utiliza uma lista de instâncias de `ClaimValidator` para validar cada claim presente no token, além de verificar se o token está bem formado e assinado corretamente.
+
+- **ClaimValidator**: Interface que define o contrato para todos os validadores de claims. Cada implementação dessa interface é responsável por validar um tipo específico de claim, garantindo assim o princípio da responsabilidade única (SRP).
+
+- **RoleValidator**: Implementação de `ClaimValidator` responsável por validar a claim `Role`. Verifica se o valor da role está entre os papéis permitidos e configurados no sistema, garantindo que apenas roles válidas sejam aceitas.
+
+- **NameValidator**: Implementação de `ClaimValidator` que valida a claim `Name`. Pode, por exemplo, garantir que o nome não esteja vazio, siga um padrão específico ou atenda a regras de negócio definidas.
+
+- **SeedValidator**: Implementação de `ClaimValidator` dedicada à validação da claim `Seed`. No contexto deste projeto, verifica se o valor da seed é um número primo, conforme a regra de negócio estabelecida.
+
+Esses validadores são configurados e gerenciados pela classe `JwtValidationConfig`, que centraliza a definição de quais validadores estão ativos e quais roles são consideradas válidas. Novos validadores podem ser facilmente adicionados ao sistema, bastando implementar a interface `ClaimValidator` e registrá-los na configuração, sem a necessidade de alterar o código existente dos demais validadores ou do `JwtValidator`.
+
+Essa abordagem garante que o sistema seja aberto para extensão e fechado para modificação (Princípio Open/Closed), além de promover a reutilização e a manutenção facilitada do código.
+
+
+---
+
 ## Arquitetura
 
 ### Princípios SOLID

@@ -33,6 +33,7 @@ public class MonitoringController {
     }
 
     @GetMapping("/metrics")
+    // Documentação Swagger
     @Operation(
         summary = "Obter métricas",
         description = "Retorna as métricas coletadas pelo sistema"
@@ -54,6 +55,7 @@ public class MonitoringController {
     }
 
     @GetMapping("/health")
+    // Documentação Swagger
     @Operation(
         summary = "Verificar saúde",
         description = "Verifica a saúde do sistema"
@@ -75,6 +77,7 @@ public class MonitoringController {
     }
 
     @GetMapping("/tracing/current")
+    // Documentação Swagger
     @Operation(
         summary = "Rastreamento atual",
         description = "Retorna informações sobre o rastreamento atual"
@@ -96,6 +99,7 @@ public class MonitoringController {
     }
 
     @GetMapping("/tracing/endpoints")
+    // Documentação Swagger
     @Operation(
         summary = "Rastreamento de endpoints",
         description = "Retorna informações sobre o rastreamento dos endpoints"
@@ -117,6 +121,7 @@ public class MonitoringController {
     }
 
     @PostMapping("/metrics/reset")
+    // Documentação Swagger
     @Operation(
         summary = "Resetar métricas",
         description = "Reseta todas as métricas coletadas"

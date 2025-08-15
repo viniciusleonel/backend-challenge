@@ -32,6 +32,7 @@ public class ApiController {
     }
 
     @GetMapping("/validate")
+    // Documentação Swagger
     @Operation(
         summary = "Validar JWT",
         description = "Valida um token JWT e retorna se é válido ou não"
@@ -66,7 +67,28 @@ public class ApiController {
         )
     })
     public ResponseEntity<Boolean> validateJwt(
-        @Parameter(description = "Token JWT a ser validado", required = true)
+        // Documentação Swagger
+        @Parameter(
+            description = "Token JWT a ser validado", 
+            required = true,
+            examples = {
+                @ExampleObject(
+                    name = "Token Válido",
+                    summary = "Exemplo de token válido",
+                    value = "eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJTZWVkIjoiNzg0MSIsIk5hbWUiOiJUb25pbmhvIEFyYXVqbyJ9.QY05sIjtrcJnP533kQNk8QXcaleJ1Q01jWY_ZzIZuAg"
+                ),
+                @ExampleObject(
+                    name = "Token Inválido",
+                    summary = "Exemplo de token inválido",
+                    value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid.token.here"
+                ),
+                @ExampleObject(
+                    name = "Token com Claim Inválido",
+                    summary = "Exemplo de token com claim inválido",
+                    value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiaW52YWxpZCIsInNlZWQiOiIxMjM0NTY3ODkwIn0.invalid_signature"
+                )
+            }
+        )
         @RequestParam String token
     ) {
         try (TraceSpan span = new TraceSpan("validateJwt")) {
@@ -74,8 +96,6 @@ public class ApiController {
             span.addBusinessContext("operation", "jwt_validation");
             
             boolean isValid = jwtValidator.isValid(token);
-            
-            // Registra metricas
             metricsCollector.recordJwtValidation(isValid);
             
             return isValid ? ResponseEntity.ok(true) : ResponseEntity.badRequest().body(false);
