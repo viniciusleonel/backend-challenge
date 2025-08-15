@@ -2,7 +2,7 @@ package br.dev.viniciusleonel.backend_challenge.controller;
 
 import java.util.Map;
 
-import br.dev.viniciusleonel.backend_challenge.utils.ApiExamples;
+import br.dev.viniciusleonel.backend_challenge.utils.ApiResponseExamples;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +43,7 @@ public class MonitoringController {
         content = @Content(
             mediaType = "application/json",
             examples = @ExampleObject(
-                value = ApiExamples.METRICS_EXAMPLE,
+                value = ApiResponseExamples.METRICS_EXAMPLE,
                 summary = "Exemplo de métricas"
             )
         )
@@ -64,7 +64,7 @@ public class MonitoringController {
         content = @Content(
             mediaType = "application/json",
             examples = @ExampleObject(
-                value = ApiExamples.HEALTH_EXAMPLE,
+                value = ApiResponseExamples.HEALTH_EXAMPLE,
                 summary = "Exemplo de saúde do sistema"
             )
         )
@@ -85,7 +85,7 @@ public class MonitoringController {
         content = @Content(
             mediaType = "application/json",
             examples = @ExampleObject(
-                value = ApiExamples.CURRENT_TRACE_EXAMPLE,
+                value = ApiResponseExamples.CURRENT_TRACE_EXAMPLE,
                 summary = "Exemplo de rastreamento atual"
             )
         )
@@ -106,7 +106,7 @@ public class MonitoringController {
         content = @Content(
             mediaType = "application/json",
             examples = @ExampleObject(
-                value = ApiExamples.ENDPOINTS_TRACE_EXAMPLE,
+                value = ApiResponseExamples.ENDPOINTS_TRACE_EXAMPLE,
                 summary = "Exemplo de rastreamento de endpoints"
             )
         )
@@ -127,7 +127,7 @@ public class MonitoringController {
         content = @Content(
             mediaType = "application/json",
             examples = @ExampleObject(
-                value = ApiExamples.RESET_METRICS_EXAMPLE,
+                value = ApiResponseExamples.RESET_METRICS_EXAMPLE,
                 summary = "Exemplo de reset de métricas"
             )
         )

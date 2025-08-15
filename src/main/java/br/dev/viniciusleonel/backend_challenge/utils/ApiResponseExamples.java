@@ -1,6 +1,6 @@
 package br.dev.viniciusleonel.backend_challenge.utils;
 
-public final class ApiExamples {
+public final class ApiResponseExamples {
 
     public static final String METRICS_EXAMPLE = """
             {
@@ -84,5 +84,5 @@ public final class ApiExamples {
         }
         """;
 
-    private ApiExamples() {} // Construtor privado para classe utilitária
+    private ApiResponseExamples() {} // Construtor privado para classe utilitária
 }
