@@ -261,10 +261,18 @@ A API possui documentação interativa gerada automaticamente com **Swagger** (O
   ou  
   [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
+**Swagger AWS:**  
+  [http://ec2-174-129-136-14.compute-1.amazonaws.com/swagger-ui.html](http://ec2-174-129-136-14.compute-1.amazonaws.com/swagger-ui.html)  
+  ou  
+  [http://ec2-174-129-136-14.compute-1.amazonaws.com/swagger-ui/index.html](http://ec2-174-129-136-14.compute-1.amazonaws.com/swagger-ui/index.html)
+
 > **Dica:** O Swagger permite enviar requisições reais para os endpoints, visualizar exemplos de payloads, respostas, códigos de status e detalhes das validações.
 
 A especificação OpenAPI também pode ser acessada em:  
 [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+**OpenAPI AWS:**  
+[http://ec2-174-129-136-14.compute-1.amazonaws.com/v3/api-docs](http://ec2-174-129-136-14.compute-1.amazonaws.com/v3/api-docs)
 
 **Principais vantagens do Swagger:**
 - Visualização clara dos endpoints disponíveis
@@ -280,6 +288,9 @@ Um arquivo de coleção do Postman está disponível em `src/postman`. Você pod
 ---
 
 ## Como Executar
+
+### URL Base AWS - http://ec2-174-129-136-14.compute-1.amazonaws.com/
+
 
 ### Pré-requisitos
 
@@ -311,6 +322,8 @@ mvn spring-boot:run
 ```
 
 A aplicação estará disponível em `http://localhost:8080`
+
+**API AWS:** `http://ec2-174-129-136-14.compute-1.amazonaws.com`
 
 ### Execução com Docker
 
@@ -873,9 +886,27 @@ O workflow `cd.yml` é executado automaticamente após o sucesso do CI e:
 3. **Build e Push** - Constrói e envia a imagem para o registry
 4. **Deploy da Infraestrutura com Terraform** - Inicializa e aplica o Terraform para provisionar/atualizar recursos na AWS
 
+### Pipeline de Destruição (Manual)
+
+O workflow `destroy.yml` permite destruir manualmente toda a infraestrutura provisionada:
+
+**Características:**
+- **Execução manual** via `workflow_dispatch` (não automático)
+- **Destruição completa** de todos os recursos AWS criados
+- **Segurança** - Requer intervenção manual para execução
+- **Limpeza** - Remove EC2, Security Groups, Key Pairs e outros recursos
+
+**Etapas do Destroy:**
+1. **Checkout do código** - Baixa o código fonte
+2. **Setup Terraform** - Configura o ambiente Terraform
+3. **Destruição da Infraestrutura** - Executa `terraform destroy -auto-approve`
+
+**⚠️ Importante:** Este workflow destrói permanentemente todos os recursos da infraestrutura. Use apenas quando necessário para limpeza de custos ou reinicialização completa.
+
 **Arquivos de configuração:**
 - `.github/workflows/ci.yml` - Pipeline de integração contínua
 - `.github/workflows/cd.yml` - Pipeline de entrega contínua
+- `.github/workflows/destroy.yml` - Pipeline de destruição da infraestrutura
 
 **Secrets necessários:**
 - `DOCKERHUB_USERNAME` - Nome de usuário do Docker Hub
@@ -897,25 +928,61 @@ O projeto inclui configuração completa de infraestrutura como código usando *
 src/main/java/br/dev/viniciusleonel/backend_challenge/infra/terraform/
 ├── main.tf                   # Configuração principal dos recursos AWS
 ├── user_data.sh              # Script de inicialização da instância EC2
-├── terraform.tfstate         # Estado atual da infraestrutura
-├── terraform.tfstate.backup  # Backup do estado
 ├── .terraform.lock.hcl       # Lock das versões dos providers
 └── ssh/                      # Chaves SSH para acesso à instância
     └── id_rsa.pub            # Chave pública SSH
 ```
 
+### Backend Remoto do Terraform
+
+O projeto utiliza um **backend remoto** configurado para armazenar o estado do Terraform de forma segura e colaborativa:
+
+- **Bucket S3**: `backend-challenge-terraform-state-bucket`
+  - Armazena o arquivo de estado (`terraform.tfstate`)
+  - Configurado com versionamento para backup automático
+  - Acesso controlado via IAM policies
+
+- **Tabela DynamoDB**: `terraform-locks`
+  - Implementa **state locking** para evitar conflitos de concorrência
+  - Garante que apenas uma execução do Terraform ocorra por vez
+  - Previne corrupção do estado durante operações simultâneas
+
+**Configuração do Backend:**
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "backend-challenge-terraform-state-bucket"
+    key            = "backend-challenge/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-locks"
+  }
+}
+```
+
 ### Recursos Provisionados
 
-#### 1. Security Group (`backend-challenge-security-group`)
+#### 1. Bucket S3 (`backend-challenge-terraform-state-bucket`)
+- **Propósito**: Armazenamento remoto do estado do Terraform
+- **Versionamento**: Habilitado para backup automático
+- **Criptografia**: SSE-S3 para dados em repouso
+- **Lifecycle**: Política de retenção configurada
+
+#### 2. Tabela DynamoDB (`terraform-locks`)
+- **Propósito**: Implementar state locking para o Terraform
+- **Chave primária**: `LockID` (string)
+- **TTL**: Configurado para limpeza automática de locks expirados
+- **Capacidade**: On-demand para escalabilidade automática
+
+#### 3. Security Group (`backend-challenge-security-group`)
 - **Porta 80 (HTTP)**: Acesso público para a aplicação
 - **Porta 22 (SSH)**: Acesso SSH para administração
 - **Egress**: Acesso total à internet para downloads e atualizações
 
-#### 2. Key Pair (`terraform-keypair`)
+#### 4. Key Pair (`terraform-keypair`)
 - Chave SSH para acesso à instância EC2
 - Baseada no arquivo `ssh/id_rsa.pub`
 
-#### 3. Instância EC2 (`backend-challenge-server`)
+#### 5. Instância EC2 (`backend-challenge-server`)
 - **AMI**: Amazon Linux 2 (`ami-0de716d6197524dd9`)
 - **Tipo**: `t3.micro` (1 vCPU, 1GB RAM)
 - **Região**: `us-east-1`
@@ -951,7 +1018,7 @@ docker run -p 80:8080 viniciusleonel/backend-challenge:latest  # Executa a aplic
 # Navegar para o diretório Terraform
 cd src/main/java/br/dev/viniciusleonel/backend_challenge/infra/terraform
 
-# Inicializar o Terraform
+# Inicializar o Terraform (configura o backend S3 automaticamente)
 terraform init
 
 # Verificar o plano de execução
@@ -963,6 +1030,22 @@ terraform apply
 # Destruir a infraestrutura
 terraform destroy
 ```
+
+#### Configuração do Backend Remoto
+
+O projeto já está configurado para usar o backend S3. Durante a inicialização (`terraform init`), o Terraform:
+
+1. **Conecta ao bucket S3** `backend-challenge-terraform-state-bucket`
+2. **Configura o DynamoDB** para state locking
+3. **Baixa o estado atual** se existir
+4. **Prepara o ambiente** para operações remotas
+
+**Vantagens do Backend Remoto:**
+- **Colaboração**: Múltiplos desenvolvedores podem trabalhar simultaneamente
+- **Segurança**: Estado armazenado de forma segura na AWS
+- **Backup**: Versionamento automático do estado
+- **Locking**: Prevenção de conflitos de concorrência
+- **Auditoria**: Histórico completo de mudanças
 
 #### Configuração da AWS
 
@@ -1043,6 +1126,9 @@ sudo journalctl -u docker
 3. **IAM Roles**: Usar roles IAM ao invés de credenciais hardcoded
 4. **Backup**: Manter backup do estado do Terraform
 5. **Versionamento**: Versionar todas as mudanças de infraestrutura
+6. **Bucket S3**: Configurar políticas de acesso restritivas
+7. **DynamoDB**: Implementar TTL para limpeza automática de locks
+8. **State Locking**: Sempre usar DynamoDB para evitar conflitos
 
 #### Exemplo de Security Group Mais Restritivo
 ```hcl
@@ -1108,6 +1194,7 @@ resource "aws_security_group" "backend-challenge-group" {
 
 Para evitar custos desnecessários, sempre destrua a infraestrutura quando não estiver usando:
 
+#### Via Terraform Local
 ```bash
 
 # Destruir todos os recursos
@@ -1117,7 +1204,10 @@ terraform destroy
 yes
 ```
 
-**⚠️ Atenção**: Este comando remove permanentemente todos os recursos criados pelo Terraform.
+#### Via GitHub Actions (Recomendado)
+O projeto inclui um workflow automatizado para destruição da infraestrutura que oferece execução consistente em ambiente controlado, logs centralizados para auditoria, e não requer configuração local do Terraform. Sua execução é manual e segura, exigindo intervenção humana para confirmação.
+
+**⚠️ Atenção**: Ambos os métodos removem permanentemente todos os recursos criados pelo Terraform.
 
 
 ---

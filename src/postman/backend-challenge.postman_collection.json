@@ -15,12 +15,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/monitoring/metrics",
-							"protocol": "http",
+							"raw": "{{baseURL}}/monitoring/metrics",
 							"host": [
-								"localhost"
+								"{{baseURL}}"
 							],
-							"port": "8080",
 							"path": [
 								"monitoring",
 								"metrics"
@@ -35,12 +33,10 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/monitoring/metrics/reset",
-							"protocol": "http",
+							"raw": "{{baseURL}}/monitoring/metrics/reset",
 							"host": [
-								"localhost"
+								"{{baseURL}}"
 							],
-							"port": "8080",
 							"path": [
 								"monitoring",
 								"metrics",
@@ -56,12 +52,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/monitoring/tracing/current",
-							"protocol": "http",
+							"raw": "{{baseURL}}/monitoring/tracing/current",
 							"host": [
-								"localhost"
+								"{{baseURL}}"
 							],
-							"port": "8080",
 							"path": [
 								"monitoring",
 								"tracing",
@@ -77,12 +71,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/monitoring/tracing/endpoints",
-							"protocol": "http",
+							"raw": "{{baseURL}}/monitoring/tracing/endpoints",
 							"host": [
-								"localhost"
+								"{{baseURL}}"
 							],
-							"port": "8080",
 							"path": [
 								"monitoring",
 								"tracing",
@@ -98,12 +90,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/monitoring/health",
-							"protocol": "http",
+							"raw": "{{baseURL}}/monitoring/health",
 							"host": [
-								"localhost"
+								"{{baseURL}}"
 							],
-							"port": "8080",
 							"path": [
 								"monitoring",
 								"health"
@@ -136,12 +126,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/validate?token={{token}}",
-							"protocol": "http",
+							"raw": "{{baseURL}}/api/validate?token={{token}}",
 							"host": [
-								"localhost"
+								"{{baseURL}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"validate"
@@ -158,6 +146,13 @@
 				}
 			],
 			"description": "**POST /api/validate**\n\n**Descrição:**  \nEndpoint principal para validação de JWT tokens com claims personalizadas. Valida a estrutura do token, quantidade de claims e aplica validadores específicos para cada claim (Name, Role, Seed).\n\n**Método:** POST  \n**URL:** {{base_url}}/api/validate?token={{jwt_token}}\n\n**Parâmetros:**  \n• token (query parameter): JWT token a ser validado\n\n**Respostas:**  \n• 200 OK: Token válido → retorna \"true\"  \n• 400 Bad Request: Token malformado → retorna \"false\"  \n• 422 Unprocessable Entity: Claims inválidas → retorna \"false\"\n\n**Validações Aplicadas:**\n\n1. Estrutura JWT válida\n    \n2. Exatamente 3 claims presentes\n    \n3. Name: máximo 256 chars, sem números\n    \n4. Role: Admin, Member ou External\n    \n5. Seed: número primo válido\n    \n\n**Exemplo de Uso:**  \nPOST /api/validate?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n**Contexto de Observabilidade:**  \n• RequestID único para rastreamento  \n• TraceID para distributed tracing  \n• SpanID para operações específicas  \n• Métricas de performance automáticas  \n• Logs estruturados com MDC"
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "http://localhost:8080",
+			"type": "default"
 		}
 	]
 }
