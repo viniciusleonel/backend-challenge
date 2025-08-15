@@ -5,7 +5,16 @@ terraform {
       version = "5.99.1"
     }
   }
+
+  backend "s3" {
+    bucket         = "backend-challenge-terraform-state-bucket"
+    key            = "backend-challenge/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-locks"
+  }
+
 }
+
 provider "aws" {
   region = "us-east-1"
 }
