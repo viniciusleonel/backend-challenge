@@ -50,9 +50,9 @@ resource "aws_security_group" "backend-challenge-group" {
 #   public_key = file("ssh/id_rsa.pub")
 # }
 
-resource "aws_eip" "backend_challenge_eip" {
-  instance = aws_instance.backend-challenge-server.id
-}
+# resource "aws_eip" "backend_challenge_eip" {
+#   instance = aws_instance.backend-challenge-server.id
+# }
 
 resource "aws_instance" "backend-challenge-server" {
   ami = "ami-0de716d6197524dd9"
