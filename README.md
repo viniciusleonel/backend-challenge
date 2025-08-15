@@ -262,9 +262,9 @@ A API possui documentação interativa gerada automaticamente com **Swagger** (O
   [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
 **Swagger AWS:**  
-  [http://ec2-3-217-97-111.compute-1.amazonaws.com/swagger-ui.html](http://ec2-3-217-97-111.compute-1.amazonaws.com/swagger-ui.html)  
+  [http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui.html](http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui.html)  
   ou  
-  [http://ec2-3-217-97-111.compute-1.amazonaws.com/swagger-ui/index.html](http://ec2-3-217-97-111.compute-1.amazonaws.com/swagger-ui/index.html)
+  [http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui/index.html](http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui/index.html)
 
 > **Dica:** O Swagger permite enviar requisições reais para os endpoints, visualizar exemplos de payloads, respostas, códigos de status e detalhes das validações.
 
@@ -272,7 +272,7 @@ A especificação OpenAPI também pode ser acessada em:
 [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
 **OpenAPI AWS:**  
-[http://ec2-3-217-97-111.compute-1.amazonaws.com/v3/api-docs](http://ec2-3-217-97-111.compute-1.amazonaws.com/v3/api-docs)
+[http://ec2-54-173-114-50.compute-1.amazonaws.com/v3/api-docs](http://ec2-54-173-114-50.compute-1.amazonaws.com/v3/api-docs)
 
 **Principais vantagens do Swagger:**
 - Visualização clara dos endpoints disponíveis
@@ -289,7 +289,7 @@ Um arquivo de coleção do Postman está disponível em `src/postman`. Você pod
 
 ## Como Executar
 
-### URL Base AWS - http://44.214.45.29/
+### URL Base AWS - http://ec2-54-173-114-50.compute-1.amazonaws.com/
 
 
 ### Pré-requisitos
@@ -323,7 +323,7 @@ mvn spring-boot:run
 
 A aplicação estará disponível em `http://localhost:8080`
 
-**API AWS:** `http://44.214.45.29`
+**API AWS:** `http://ec2-54-173-114-50.compute-1.amazonaws.com`
 
 ### Execução com Docker
 
