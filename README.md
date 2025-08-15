@@ -179,19 +179,23 @@ src/main/java/br/dev/viniciusleonel/backend_challenge/
 │   │   ├── HealthCheckException.java
 │   │   ├── InvalidClaimException.java
 │   │   └── ResetMetricsException.java
-│   └── observability/   # Sistema de observabilidade
-│       ├── config/      # Configurações da aplicação
-│       │   ├── WebConfig.java
-│       │   └── ObservabilityConfig.java
-│       ├── logging/     # Sistema de logging
-│       │   └── LoggingInterceptor.java
-│       ├── monitoring/  # Sistema de monitoring
-│       │   ├── MetricsCollector.java
-│       │   └── MonitorHealth.java
-│       └── tracing/     # Sistema de tracing distribuído
-│           ├── TraceContext.java
-│           ├── TraceMetrics.java
-│           └── TraceSpan.java
+│   ├── observability/   # Sistema de observabilidade
+│   │   ├── config/      # Configurações da aplicação
+│   │   │   ├── WebConfig.java
+│   │   │   └── ObservabilityConfig.java
+│   │   ├── logging/     # Sistema de logging
+│   │   │   └── LoggingInterceptor.java
+│   │   ├── monitoring/  # Sistema de monitoring
+│   │   │   ├── MetricsCollector.java
+│   │   │   └── MonitorHealth.java
+│   │   └── tracing/     # Sistema de tracing distribuído
+│   │       ├── TraceContext.java
+│   │       ├── TraceMetrics.java
+│   │       └── TraceSpan.java
+│   └── terraform/       # Infraestrutura como código
+│       ├── main.tf      # Configuração principal AWS
+│       ├── user_data.sh # Script de inicialização
+│       └── ssh/         # Chaves SSH
 ├── utils/               # Utilitários (geração de JWT, validação de números)
 ├── validators/          # Validadores de claims
 └── BackendChallengeApplication.java
@@ -282,6 +286,8 @@ Um arquivo de coleção do Postman está disponível em `src/postman`. Você pod
 - Java 21
 - Maven 3.9.8+
 - Docker (opcional)
+- Terraform (opcional)
+- AWS CLI (opcional)
 
 ### Execução Local
 
@@ -370,43 +376,6 @@ src/test/java/br/dev/viniciusleonel/backend_challenge/
     ├── ApiControllerTest.java
     └── MonitoringControllerTest.java
 ```
-
----
-
-## CI/CD
-
-O projeto utiliza GitHub Actions para automatizar o processo de integração e entrega contínua.
-
-### Pipeline CI (Continuous Integration)
-
-O workflow `ci.yml` é executado em:
-- Push para a branch `main`
-- Pull requests para a branch `main`
-
-**Etapas do CI:**
-1. **Checkout do código** - Baixa o código fonte
-2. **Configuração do JDK 21** - Configura o ambiente Java com Temurin
-3. **Compilação e testes** - Executa `mvn clean verify`
-
-### Pipeline CD (Continuous Deployment)
-
-O workflow `cd.yml` é executado automaticamente após o sucesso do CI e:
-- Constrói a imagem Docker
-- Faz push para o Docker Hub
-- Utiliza secrets configurados para autenticação
-
-**Etapas do CD:**
-1. **Setup Docker Buildx** - Configura o ambiente Docker
-2. **Login no Docker Hub** - Autentica usando secrets
-3. **Build e Push** - Constrói e envia a imagem para o registry
-
-**Arquivos de configuração:**
-- `.github/workflows/ci.yml` - Pipeline de integração contínua
-- `.github/workflows/cd.yml` - Pipeline de entrega contínua
-
-**Secrets necessários:**
-- `DOCKERHUB_USERNAME` - Nome de usuário do Docker Hub
-- `DOCKERHUB_TOKEN` - Token de acesso do Docker Hub
 
 ---
 
@@ -872,6 +841,286 @@ Através dos logs estruturados e endpoints de monitoring, é possível extrair:
 - **Tracing statistics** por endpoint e operação
 - **Health metrics** em tempo real
 - **Business metrics** para análise de comportamento
+
+---
+
+## GitHub Actions CI/CD (Docker-Terraform-AWS)
+
+O projeto utiliza GitHub Actions para automatizar o processo de integração, entrega contínua e provisionamento de infraestrutura.
+
+### Pipeline CI (Continuous Integration)
+
+O workflow `ci.yml` é executado em:
+- Push para a branch `main`
+- Pull requests para a branch `main`
+
+**Etapas do CI:**
+1. **Checkout do código** - Baixa o código fonte
+2. **Configuração do JDK 21** - Configura o ambiente Java com Temurin
+3. **Compilação e testes** - Executa `mvn clean verify`
+
+### Pipeline CD (Continuous Deployment + Infraestrutura)
+
+O workflow `cd.yml` é executado automaticamente após o sucesso do CI e:
+- Constrói a imagem Docker
+- Faz push para o Docker Hub
+- Provisiona/atualiza a infraestrutura na AWS usando Terraform
+- Utiliza secrets configurados para autenticação
+
+**Etapas do CD:**
+1. **Setup Docker Buildx** - Configura o ambiente Docker
+2. **Login no Docker Hub** - Autentica usando secrets
+3. **Build e Push** - Constrói e envia a imagem para o registry
+4. **Deploy da Infraestrutura com Terraform** - Inicializa e aplica o Terraform para provisionar/atualizar recursos na AWS
+
+**Arquivos de configuração:**
+- `.github/workflows/ci.yml` - Pipeline de integração contínua
+- `.github/workflows/cd.yml` - Pipeline de entrega contínua
+
+**Secrets necessários:**
+- `DOCKERHUB_USERNAME` - Nome de usuário do Docker Hub
+- `DOCKERHUB_TOKEN` - Token de acesso do Docker Hub
+- `AWS_ACCESS_KEY_ID` - Chave de acesso da AWS
+- `AWS_SECRET_ACCESS_KEY` - Chave secreta da AWS
+- `AWS_REGION` - Região da AWS (ex: us-east-1)
+
+
+---
+
+## Infraestrutura como Código (Terraform-AWS)
+
+O projeto inclui configuração completa de infraestrutura como código usando **Terraform** para provisionar e gerenciar recursos na AWS.
+
+### Estrutura dos Arquivos Terraform
+
+```
+src/main/java/br/dev/viniciusleonel/backend_challenge/infra/terraform/
+├── main.tf                   # Configuração principal dos recursos AWS
+├── user_data.sh              # Script de inicialização da instância EC2
+├── terraform.tfstate         # Estado atual da infraestrutura
+├── terraform.tfstate.backup  # Backup do estado
+├── .terraform.lock.hcl       # Lock das versões dos providers
+└── ssh/                      # Chaves SSH para acesso à instância
+    └── id_rsa.pub            # Chave pública SSH
+```
+
+### Recursos Provisionados
+
+#### 1. Security Group (`backend-challenge-security-group`)
+- **Porta 80 (HTTP)**: Acesso público para a aplicação
+- **Porta 22 (SSH)**: Acesso SSH para administração
+- **Egress**: Acesso total à internet para downloads e atualizações
+
+#### 2. Key Pair (`terraform-keypair`)
+- Chave SSH para acesso à instância EC2
+- Baseada no arquivo `ssh/id_rsa.pub`
+
+#### 3. Instância EC2 (`backend-challenge-server`)
+- **AMI**: Amazon Linux 2 (`ami-0de716d6197524dd9`)
+- **Tipo**: `t3.micro` (1 vCPU, 1GB RAM)
+- **Região**: `us-east-1`
+- **User Data**: Script de inicialização automática
+
+### Script de Inicialização (user_data.sh)
+
+O script `user_data.sh` executa automaticamente na primeira inicialização da instância:
+
+```bash
+
+#!/bin/bash
+sudo su
+yum update -y                                                  # Atualiza o sistema
+yum install -y docker                                          # Instala o Docker
+service docker start                                           # Inicia o serviço Docker
+usermod -a -G docker ec2-user                                  # Adiciona usuário ao grupo docker
+docker run -p 80:8080 viniciusleonel/backend-challenge:latest  # Executa a aplicação
+```
+
+### Como Usar o Terraform
+
+#### Pré-requisitos
+
+1. **Terraform instalado** (versão 1.0+)
+2. **AWS CLI configurado** com credenciais válidas
+3. **Chave SSH** em `ssh/id_rsa.pub`
+
+#### Comandos Básicos
+
+```bash
+
+# Navegar para o diretório Terraform
+cd src/main/java/br/dev/viniciusleonel/backend_challenge/infra/terraform
+
+# Inicializar o Terraform
+terraform init
+
+# Verificar o plano de execução
+terraform plan
+
+# Aplicar a configuração
+terraform apply
+
+# Destruir a infraestrutura
+terraform destroy
+```
+
+#### Configuração da AWS
+
+Certifique-se de que suas credenciais AWS estão configuradas:
+
+```bash
+
+# Via AWS CLI
+aws configure
+
+# Ou via variáveis de ambiente
+export AWS_ACCESS_KEY_ID="sua_access_key"
+export AWS_SECRET_ACCESS_KEY="sua_secret_key"
+export AWS_DEFAULT_REGION="us-east-1"
+```
+
+### Personalização da Infraestrutura
+
+#### Alterar Região AWS
+```hcl
+provider "aws" {
+  region = "us-west-2"  # Alterar para região desejada
+}
+```
+
+#### Alterar Tipo de Instância
+```hcl
+resource "aws_instance" "backend-challenge-server" {
+  ami = "ami-0de716d6197524dd9"
+  instance_type = "t3.small"  # Alterar para tipo desejado
+  # ... resto da configuração
+}
+```
+
+#### Adicionar Tags
+```hcl
+resource "aws_instance" "backend-challenge-server" {
+  # ... configuração existente
+  
+  tags = {
+    Name        = "Backend-Challenge-Server"
+    Environment = "Production"
+    Project     = "Backend-Challenge"
+    Owner       = "Vinicius Leonel"
+  }
+}
+```
+
+### Monitoramento e Acesso
+
+#### Acesso SSH
+```bash
+
+# Conectar via SSH (substitua pelo IP público da instância)
+ssh -i ssh/id_rsa ec2-user@<IP_PUBLICO_EC2>
+```
+
+#### Acesso à Aplicação
+- **URL**: `http://<IP_PUBLICO_EC2>`
+- **Swagger**: `http://<IP_PUBLICO_EC2>/swagger-ui.html`
+- **Health Check**: `http://<IP_PUBLICO_EC2>/monitoring/health`
+
+#### Logs da Aplicação
+```bash
+
+# Ver logs do container Docker
+docker logs $(docker ps -q --filter ancestor=viniciusleonel/backend-challenge:latest)
+
+# Ver logs do sistema
+sudo journalctl -u docker
+```
+
+### Segurança e Boas Práticas
+
+#### Recomendações de Segurança
+1. **Restringir acesso SSH**: Limitar `cidr_blocks` para IPs específicos
+2. **Usar VPC**: Configurar rede privada para isolamento
+3. **IAM Roles**: Usar roles IAM ao invés de credenciais hardcoded
+4. **Backup**: Manter backup do estado do Terraform
+5. **Versionamento**: Versionar todas as mudanças de infraestrutura
+
+#### Exemplo de Security Group Mais Restritivo
+```hcl
+resource "aws_security_group" "backend-challenge-group" {
+  name = "backend-challenge-security-group"
+  description = "Security group com acesso restrito"
+
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # HTTP público
+  }
+
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["192.168.1.0/24"]  # Apenas rede local
+  }
+
+  egress {
+    from_port = 0
+    to_port = 65535
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+```
+
+### Troubleshooting
+
+#### Problemas Comuns
+
+1. **Erro de credenciais AWS**
+   ```bash
+   # Verificar configuração
+   aws sts get-caller-identity
+   ```
+
+2. **Erro de chave SSH**
+   ```bash
+   # Verificar permissões
+   chmod 400 ssh/id_rsa
+   ```
+
+3. **Instância não inicia**
+   ```bash
+   # Verificar logs de inicialização
+   aws ec2 get-console-output --instance-id <INSTANCE_ID>
+   ```
+
+4. **Aplicação não responde**
+   ```bash
+   # Verificar se o Docker está rodando
+   sudo systemctl status docker
+   
+   # Verificar containers ativos
+   docker ps
+   ```
+
+### Limpeza e Destruição
+
+Para evitar custos desnecessários, sempre destrua a infraestrutura quando não estiver usando:
+
+```bash
+
+# Destruir todos os recursos
+terraform destroy
+
+# Confirmar destruição
+yes
+```
+
+**⚠️ Atenção**: Este comando remove permanentemente todos os recursos criados pelo Terraform.
+
+
+---
 
 ## Criado por:
 

@@ -31,3 +31,22 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/.terraform.lock.hcl
+**/crash.log
+**/override.tf
+**/override.tf.json
+**/*_override.tf
+**/*_override.tf.json
+**/.terraformrc
+**/terraform.rc
+**/id_rsa
+**/id_rsa.pub
+**/ssh/
+.DS_Store
+Thumbs.db
+
