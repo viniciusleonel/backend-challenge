@@ -273,27 +273,36 @@ O `GlobalExceptionHandler` agora trata as seguintes exceções:
 
 ---
 
+> **Aviso:** Infraestrutura na **AWS** ***DESATIVADA!***
+
+---
+
 ## Documentação Interativa com Swagger
 
 A API possui documentação interativa gerada automaticamente com **Swagger** (OpenAPI 3), facilitando a exploração e o teste dos endpoints diretamente pelo navegador.
 
+ 
 - **Acesse a documentação Swagger UI:**  
   [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)  
   ou  
   [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
-**Swagger AWS:**  
-  [http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui.html](http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui.html)  
-  ou  
-  [http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui/index.html](http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui/index.html)
+[//]: # (**Swagger AWS:**  )
+
+[//]: # (  [http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui.html]&#40;http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui.html&#41;  )
+
+[//]: # (  ou  )
+
+[//]: # (  [http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui/index.html]&#40;http://ec2-54-173-114-50.compute-1.amazonaws.com/swagger-ui/index.html&#41;)
 
 > **Dica:** O Swagger permite enviar requisições reais para os endpoints, visualizar exemplos de payloads, respostas, códigos de status e detalhes das validações.
 
 A especificação OpenAPI também pode ser acessada em:  
 [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
-**OpenAPI AWS:**  
-[http://ec2-54-173-114-50.compute-1.amazonaws.com/v3/api-docs](http://ec2-54-173-114-50.compute-1.amazonaws.com/v3/api-docs)
+[//]: # (**OpenAPI AWS:**  )
+
+[//]: # ([http://ec2-54-173-114-50.compute-1.amazonaws.com/v3/api-docs]&#40;http://ec2-54-173-114-50.compute-1.amazonaws.com/v3/api-docs&#41;)
 
 **Principais vantagens do Swagger:**
 - Visualização clara dos endpoints disponíveis
@@ -310,8 +319,7 @@ Um arquivo de coleção do Postman está disponível em `src/postman`. Você pod
 
 ## Como Executar
 
-### URL Base AWS - http://ec2-54-173-114-50.compute-1.amazonaws.com/
-
+[//]: # (### URL Base AWS - http://ec2-54-173-114-50.compute-1.amazonaws.com/)
 
 ### Pré-requisitos
 
@@ -344,7 +352,7 @@ mvn spring-boot:run
 
 A aplicação estará disponível em `http://localhost:8080`
 
-**API AWS:** `http://ec2-54-173-114-50.compute-1.amazonaws.com`
+[//]: # (**API AWS:** `http://ec2-54-173-114-50.compute-1.amazonaws.com`)
 
 ### Execução com Docker
 
