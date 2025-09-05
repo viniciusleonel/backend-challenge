@@ -1,12 +1,10 @@
 package br.dev.viniciusleonel.backend_challenge.infra.observability.monitoring;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Map;
 
-import br.dev.viniciusleonel.backend_challenge.infra.observability.monitoring.MetricsCollector;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
 
 class MetricsCollectorTest {
 

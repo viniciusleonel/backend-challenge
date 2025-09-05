@@ -33,10 +33,8 @@ class MonitoringControllerTest {
 
     @Test
     void shouldReturnMetricsWithTraceContext() {
-        // When
         ResponseEntity<Map<String, Object>> response = controller.getMetrics();
         
-        // Then
         assertTrue(response.getStatusCode().is2xxSuccessful());
         Map<String, Object> body = response.getBody();
         assertNotNull(body);
@@ -46,10 +44,8 @@ class MonitoringControllerTest {
 
     @Test
     void shouldReturnHealthWithTraceContext() {
-        // When
         ResponseEntity<Map<String, Object>> response = controller.health();
         
-        // Then
         assertTrue(response.getStatusCode().is2xxSuccessful());
         Map<String, Object> body = response.getBody();
         assertNotNull(body);
@@ -59,10 +55,8 @@ class MonitoringControllerTest {
 
     @Test
     void shouldReturnCurrentTrace() {
-        // When
         ResponseEntity<Map<String, Object>> response = controller.getCurrentTrace();
         
-        // Then
         assertTrue(response.getStatusCode().is2xxSuccessful());
         Map<String, Object> body = response.getBody();
         assertNotNull(body);
@@ -73,13 +67,10 @@ class MonitoringControllerTest {
 
     @Test
     void shouldResetMetrics() {
-        // Given
         metricsCollector.recordRequest("/api/validate", "GET");
         
-        // When
         ResponseEntity<Map<String, Object>> response = controller.resetMetrics();
         
-        // Then
         assertTrue(response.getStatusCode().is2xxSuccessful());
         Map<String, Object> body = response.getBody();
         assertEquals("Metricas resetadas com sucesso", body.get("message"));

@@ -6,6 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -32,6 +33,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(JWTDecodeException.class)
     public ResponseEntity<Boolean> handleInvalidName(JWTDecodeException ex) {
         log.error("Token inválido detectado: {}", ex.getMessage(), ex);
+        return ResponseEntity.badRequest().body(false);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Boolean> handleMissingServletRequestParameterError(MissingServletRequestParameterException ex) {
+        log.error("Parâmetro 'token' ausente: {}", ex.getMessage(), ex);
         return ResponseEntity.badRequest().body(false);
     }
 

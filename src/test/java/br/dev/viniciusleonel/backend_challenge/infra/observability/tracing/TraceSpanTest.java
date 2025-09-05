@@ -1,15 +1,13 @@
 package br.dev.viniciusleonel.backend_challenge.infra.observability.tracing;
 
-import br.dev.viniciusleonel.backend_challenge.infra.observability.tracing.TraceContext;
-import br.dev.viniciusleonel.backend_challenge.infra.observability.tracing.TraceSpan;
+import java.util.Map;
+
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
-
-import java.util.Map;
 
 class TraceSpanTest {
 
@@ -26,90 +24,66 @@ class TraceSpanTest {
 
     @Test
     void shouldCreateSpanWithOperationName() {
-        // When
-        TraceSpan span = new TraceSpan("testOperation");
-        
-        // Then
-        assertEquals("testOperation", TraceContext.getCurrentOperationName());
-        span.close();
+        try (TraceSpan span = new TraceSpan("testOperation")) {
+            assertEquals("testOperation", TraceContext.getCurrentOperationName());
+        } // span.close() é chamado automaticamente
     }
 
     @Test
     void shouldAddTagsCorrectly() {
-        // Given
-        TraceSpan span = new TraceSpan("testOperation");
-        
-        // When
-        span.addTag("key1", "value1");
-        span.addTag("key2", "value2");
-        
-        // Then
-        Map<String, String> tags = span.getTags();
-        assertEquals("value1", tags.get("key1"));
-        assertEquals("value2", tags.get("key2"));
-        
-        span.close();
+        try (TraceSpan span = new TraceSpan("testOperation")) {
+            span.addTag("key1", "value1");
+            span.addTag("key2", "value2");
+
+            Map<String, String> tags = span.getTags();
+            assertEquals("value1", tags.get("key1"));
+            assertEquals("value2", tags.get("key2"));
+        } // span.close() é chamado automaticamente
     }
 
     @Test
     void shouldAddMetricsCorrectly() {
-        // Given
-        TraceSpan span = new TraceSpan("testOperation");
-        
-        // When
-        span.addMetric("duration", 100L);
-        span.addMetric("count", 5);
-        
-        // Then
-        Map<String, Object> metrics = span.getMetrics();
-        assertEquals(100L, metrics.get("duration"));
-        assertEquals(5, metrics.get("count"));
-        
-        span.close();
+        try (TraceSpan span = new TraceSpan("testOperation")) {
+            span.addMetric("duration", 100L);
+            span.addMetric("count", 5);
+
+            Map<String, Object> metrics = span.getMetrics();
+            assertEquals(100L, metrics.get("duration"));
+            assertEquals(5, metrics.get("count"));
+        }
     }
 
     @Test
     void shouldAddBusinessContext() {
-        // Given
-        TraceSpan span = new TraceSpan("testOperation");
-        
-        // When
-        span.addBusinessContext("userId", "12345");
-        span.addBusinessContext("operation", "validation");
-        
-        // Then
-        Map<String, String> tags = span.getTags();
-        assertEquals("12345", tags.get("business.userId"));
-        assertEquals("validation", tags.get("business.operation"));
-        
-        span.close();
+        try (TraceSpan span = new TraceSpan("testOperation")) {
+            span.addBusinessContext("userId", "12345");
+            span.addBusinessContext("operation", "validation");
+
+            Map<String, String> tags = span.getTags();
+            assertEquals("12345", tags.get("business.userId"));
+            assertEquals("validation", tags.get("business.operation"));
+        }
     }
 
     @Test
     void shouldAddErrorContext() {
-        // Given
-        TraceSpan span = new TraceSpan("testOperation");
-        
-        // When
-        span.addError("Validation failed");
-        
-        // Then
-        Map<String, String> tags = span.getTags();
-        assertEquals("Validation failed", tags.get("error"));
-        
-        span.close();
+        try (TraceSpan span = new TraceSpan("testOperation")) {
+            span.addError("Validation failed");
+
+            Map<String, String> tags = span.getTags();
+            assertEquals("Validation failed", tags.get("error"));
+        }
     }
 
     @Test
     void shouldCloseSpanAndEndTrace() {
-        // Given
-        TraceSpan span = new TraceSpan("testOperation");
-        String spanId = TraceContext.getCurrentSpanId();
-        
-        // When
-        span.close();
-        
-        // Then
-        assertNotEquals(spanId, TraceContext.getCurrentSpanId());
+        try (TraceSpan span = new TraceSpan("testOperation")) {
+            String spanId = TraceContext.getCurrentSpanId();
+
+            span.close(); // Obrigado a fechar para o teste
+
+            assertNotEquals(spanId, TraceContext.getCurrentSpanId());
+        }
+
     }
 } 

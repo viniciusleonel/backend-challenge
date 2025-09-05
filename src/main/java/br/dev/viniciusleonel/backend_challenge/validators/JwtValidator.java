@@ -25,7 +25,7 @@ public class JwtValidator {
         log.info("Iniciando validacao do JWT");
 
         if (token == null || token.trim().isEmpty()) {
-            throw new JWTDecodeException("Token nulo ou vazio");
+            throw new JWTDecodeException("Token inválido, nulo ou vazio.");
         }
 
         DecodedJWT jwt = JwtDecoder.decode(token);
